@@ -1,16 +1,589 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Korean 1 Textbook</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.5rem; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+    .lesson-nav { display: flex; gap: 4px; padding: 14px 12px; background: #1e293b; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .lesson-nav::-webkit-scrollbar { display: none; }
+    .lesson-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; background: #334155; color: #94a3b8; white-space: nowrap; }
+    .lesson-btn.active { background: #3b82f6; color: #fff; }
+    .lesson-header { padding: 18px 16px 6px; }
+    .lesson-title { font-size: 20px; font-weight: 700; }
+    .section-nav { display: flex; gap: 6px; padding: 10px 16px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+    .section-nav::-webkit-scrollbar { display: none; }
+    .section-btn { padding: 6px 14px; border: 1px solid #cbd5e1; border-radius: 20px; cursor: pointer; font-size: 13px; background: #fff; color: #64748b; white-space: nowrap; }
+    .section-btn.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+    .section-content { padding: 14px 16px 32px; }
+    .section-header { margin-bottom: 16px; }
+    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.08em; }
+    .section-title { font-size: 18px; font-weight: 700; margin-top: 3px; }
+    .speaker-block { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+    .speaker-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
+    .speaker-name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .speaker-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .play-turn-btn { padding: 5px 13px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; background: transparent; min-height: 32px; }
+    .line-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; }
+    .line-row + .line-row { border-top: 1px solid #f8fafc; }
+    .line-text { font-size: 17px; flex: 1; line-height: 1.4; }
+    .play-line-btn { width: 34px; height: 34px; border: none; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; margin-left: 12px; flex-shrink: 0; color: #fff; }
+    .play-all-wrap { padding: 8px 0 4px; }
+    .play-all-btn { width: 100%; padding: 13px; border: 2px solid #1e293b; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; background: transparent; color: #1e293b; }
+    .play-all-btn:active { background: #1e293b; color: #fff; }
+    @media (hover: hover) {
+      .play-all-btn:hover { background: #1e293b; color: #fff; }
+      .lesson-btn:hover:not(.active) { background: #475569; }
+    }
   </style>
 </head>
 <body>
-  <h1>Korean 1 Textbook</h1>
-  <p>Site under construction.</p>
+<div id="app"></div>
+<script>
+const LESSONS = [
+  {
+    title: "Lesson 1: Greetings",
+    sections: [
+      {
+        label: "Conversation 1", title: "저는 스티브 윌슨이에요",
+        dir: "Textbook_Lesson1_C1_3rd_Edition",
+        lines: [
+          { speaker: "스티브", file: "segment_06.mp3", text: "안녕하세요" },
+          { speaker: "스티브", file: "segment_07.mp3", text: "저는 스티브 윌슨이에요." },
+          { speaker: "스티브", file: "segment_08.mp3", text: "3학년이에요." },
+          { speaker: "유미", file: "segment_09.mp3", text: "안녕하세요." },
+          { speaker: "유미", file: "segment_10.mp3", text: "저는 김유미예요." },
+          { speaker: "유미", file: "segment_11.mp3", text: "저는 1학년이에요." },
+          { speaker: "마이클", file: "segment_12.mp3", text: "마이클 정이에요." },
+          { speaker: "마이클", file: "segment_13.mp3", text: "저도 1학년이에요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "한국 사람이에요?",
+        dir: "Textbook_Lesson1_C2_3rd_Edition",
+        lines: [
+          { speaker: "마이클", file: "segment_04.mp3", text: "안녕하세요." },
+          { speaker: "마이클", file: "segment_05.mp3", text: "저는 마이클 정이에요." },
+          { speaker: "마이클", file: "segment_06.mp3", text: "이름이 뭐예요?" },
+          { speaker: "소피아", file: "segment_07.mp3", text: "소피아 왕이에요." },
+          { speaker: "소피아", file: "segment_08.mp3", text: "반갑습니다." },
+          { speaker: "마이클", file: "segment_09.mp3", text: "소피아 씨는 한국 사람이에요?" },
+          { speaker: "소피아", file: "segment_10.mp3", text: "아니요." },
+          { speaker: "소피아", file: "segment_11.mp3", text: "한국 사람이 아니에요." },
+          { speaker: "소피아", file: "segment_12.mp3", text: "중국 사람이에요." },
+          { speaker: "마이클", file: "segment_13.mp3", text: "아, 그래요." },
+          { speaker: "마이클", file: "segment_14.mp3", text: "저는 한국 사람이에요." }
+        ]
+      },
+      {
+        label: "Narration", title: "한국어 클래스",
+        dir: "Textbook_Lesson1_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_03.mp3", text: "이민수 선생님은 한국어 선생님이에요." },
+          { speaker: "나레이터", file: "segment_04.mp3", text: "한국 사람이에요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "김유미," },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "마이클 정," },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "소피아 왕," },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "스티브 윌슨은" },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "한국 클래스 학생이에요." },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "김유미는 한국 사람이에요." },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "마이클 씨도 한국 사람이에요." },
+          { speaker: "나레이터", file: "segment_12.mp3", text: "소피아 왕은 한국 사람이 아니에요." },
+          { speaker: "나레이터", file: "segment_13.mp3", text: "중국 사람이에요." },
+          { speaker: "나레이터", file: "segment_14.mp3", text: "스티브 윌슨도 한국 사람이 아니에요." },
+          { speaker: "나레이터", file: "segment_15.mp3", text: "미국 사람이에요." }
+        ]
+      }
+    ]
+  },
+  {
+    title: "Lesson 2: Korean Language Class",
+    sections: [
+      {
+        label: "Conversation 1", title: "한국어 수업이 재미있어요",
+        dir: "Textbook_Lesson2_C1_3rd_Edition",
+        lines: [
+          { speaker: "리사", file: "segment_05.mp3", text: "안녕하세요, 스티브 씨." },
+          { speaker: "스티브", file: "segment_06.mp3", text: "어, 리사 씨, 안녕하세요?" },
+          { speaker: "리사", file: "segment_07.mp3", text: "한국어 수업이 어때요?" },
+          { speaker: "스티브", file: "segment_08.mp3", text: "아주 재미있어요." },
+          { speaker: "스티브", file: "segment_09.mp3", text: "친구들도 좋아요." },
+          { speaker: "리사", file: "segment_10.mp3", text: "숙제가 많아요?" },
+          { speaker: "스티브", file: "segment_11.mp3", text: "많아요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "한국어를 공부해요",
+        dir: "Textbook_Lesson2_C2_3rd_Edition",
+        lines: [
+          { speaker: "소피아", file: "segment_03.mp3", text: "리사 씨," },
+          { speaker: "소피아", file: "segment_04.mp3", text: "요즘 어떻게 지내요?" },
+          { speaker: "리사", file: "segment_05.mp3", text: "잘 지내요." },
+          { speaker: "리사", file: "segment_06.mp3", text: "소피아 씨는 어떻게 지내요?" },
+          { speaker: "소피아", file: "segment_07.mp3", text: "저도 잘 지내요." },
+          { speaker: "리사", file: "segment_08.mp3", text: "지금 뭐 해요?" },
+          { speaker: "소피아", file: "segment_09.mp3", text: "한국어를 공부해요." },
+          { speaker: "소피아", file: "segment_10.mp3", text: "오늘 한국어 시험을 봐요." },
+          { speaker: "소피아", file: "segment_11.mp3", text: "그리고 내일은" },
+          { speaker: "소피아", file: "segment_12.mp3", text: "한국 역사 시험을 봐요." },
+          { speaker: "리사", file: "segment_13.mp3", text: "아, 그래요?" },
+          { speaker: "소피아", file: "segment_14.mp3", text: "네." }
+        ]
+      },
+      {
+        label: "Narration", title: "한국어 수업",
+        dir: "Textbook_Lesson2_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_03.mp3", text: "저는" },
+          { speaker: "나레이터", file: "segment_04.mp3", text: "한국어를 공부해요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "한국어 수업이 아주 재미있어요." },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "친구들도 좋아요." },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "그리고 학생들이 많아요." },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "중국 학생, 일본 학생이 많아요." },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "오늘도 학생들이 한국어를 공부해요." },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "그리고 오늘은" },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "한국어 시험도 봐요." }
+        ]
+      }
+    ]
+  },
+  {
+    title: "Lesson 3: The University Campus",
+    sections: [
+      {
+        label: "Conversation 1", title: "학교 식당이 어디 있어요?",
+        dir: "Textbook_Lesson3_C1_3rd_Edition",
+        lines: [
+          { speaker: "유미", file: "segment_05.mp3", text: "저…" },
+          { speaker: "유미", file: "segment_06.mp3", text: "학교 식당이 어디 있어요?" },
+          { speaker: "리사", file: "segment_07.mp3", text: "유니언 빌딩 1층에 있어요." },
+          { speaker: "리사", file: "segment_08.mp3", text: "그리고 도서관 뒤에도 있어요." },
+          { speaker: "유미", file: "segment_09.mp3", text: "유니언 빌딩은 어디에 있어요?" },
+          { speaker: "리사", file: "segment_10.mp3", text: "우체국 앞에 있어요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "오늘 수업 있으세요?",
+        dir: "Textbook_Lesson3_C2_3rd_Edition",
+        lines: [
+          { speaker: "제니", file: "segment_03.mp3", text: "마이클 씨," },
+          { speaker: "제니", file: "segment_04.mp3", text: "오늘 수업 있으세요?" },
+          { speaker: "마이클", file: "segment_05.mp3", text: "네." },
+          { speaker: "마이클", file: "segment_06.mp3", text: "한국어 수업이 있어요." },
+          { speaker: "마이클", file: "segment_07.mp3", text: "제니 씨는요?" },
+          { speaker: "제니", file: "segment_08.mp3", text: "오늘은 수업이 없어요." },
+          { speaker: "제니", file: "segment_09.mp3", text: "그런데 내일은 경제학 수업이 있어요." },
+          { speaker: "제니", file: "segment_10.mp3", text: "한국어 수업은 재미있어요?" },
+          { speaker: "마이클", file: "segment_11.mp3", text: "네." },
+          { speaker: "마이클", file: "segment_12.mp3", text: "아주 재미있어요." },
+          { speaker: "마이클", file: "segment_13.mp3", text: "그리고 선생님도 좋으세요." },
+          { speaker: "마이클", file: "segment_14.mp3", text: "그래서" },
+          { speaker: "마이클", file: "segment_15.mp3", text: "매일 열심히 한국어를 공부해요." },
+          { speaker: "제니", file: "segment_16.mp3", text: "한국어 교실은 어디 있어요?" },
+          { speaker: "마이클", file: "segment_17.mp3", text: "로이스 홀 3층에 있어요." }
+        ]
+      },
+      {
+        label: "Narration", title: "캠퍼스",
+        dir: "Textbook_Lesson3_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_03.mp3", text: "대학교 캠퍼스는 넓어요." },
+          { speaker: "나레이터", file: "segment_04.mp3", text: "학생들이 아주 많아요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "그래서 기숙사가 커요." },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "그리고 도서관도 많아요." },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "학교 식당은 유니언 빌딩 안에 있어요." },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "음식이 싸요." },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "그리고 커피가 맛있어요." },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "유니언 빌딩 안에 서점도 있어요." },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "로이스 홀 3층에 한국어 교실이 있어요." },
+          { speaker: "나레이터", file: "segment_12.mp3", text: "매일 한국어 수업이 있어요." },
+          { speaker: "나레이터", file: "segment_13.mp3", text: "선생님은 이민수 선생님이세요." },
+          { speaker: "나레이터", file: "segment_14.mp3", text: "선생님이 아주 좋으세요." }
+        ]
+      }
+    ]
+  },
+  {
+    title: "Lesson 4: At Home",
+    sections: [
+      {
+        label: "Conversation 1", title: "동생이 두 명 있어요",
+        dir: "Textbook_Lesson4_C1_3rd_Edition",
+        lines: [
+          { speaker: "소피아", file: "segment_04.mp3", text: "스티브 씨," },
+          { speaker: "소피아", file: "segment_05.mp3", text: "집이 어디예요?" },
+          { speaker: "스티브", file: "segment_06.mp3", text: "보스턴이에요." },
+          { speaker: "스티브", file: "segment_07.mp3", text: "아버지하고 어머니가 보스턴에 계세요." },
+          { speaker: "스티브", file: "segment_08.mp3", text: "소피아 씨 부모님은 어디 계세요?" },
+          { speaker: "소피아", file: "segment_09.mp3", text: "홍콩에 계세요." },
+          { speaker: "소피아", file: "segment_10.mp3", text: "오빠하고 동생도 홍콩에 있어요." },
+          { speaker: "스티브", file: "segment_11.mp3", text: "오빠하고 동생도 대학생이에요?" },
+          { speaker: "소피아", file: "segment_12.mp3", text: "아니요." },
+          { speaker: "소피아", file: "segment_13.mp3", text: "오빠는 대학원생이에요." },
+          { speaker: "소피아", file: "segment_14.mp3", text: "그리고 동생은 지금 고등학생이에요." },
+          { speaker: "스티브", file: "segment_15.mp3", text: "남동생이에요, 여동생이에요?" },
+          { speaker: "소피아", file: "segment_16.mp3", text: "여동생이에요." },
+          { speaker: "소피아", file: "segment_17.mp3", text: "스티브 씨도 동생 있어요?" },
+          { speaker: "스티브", file: "segment_18.mp3", text: "네." },
+          { speaker: "스티브", file: "segment_19.mp3", text: "남동생이 두 명 있어요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "누구 방이에요?",
+        dir: "Textbook_Lesson4_C2_3rd_Edition",
+        lines: [
+          { speaker: "소피아", file: "segment_04.mp3", text: "리사 씨," },
+          { speaker: "소피아", file: "segment_05.mp3", text: "아파트에 방이 몇 개 있어요?" },
+          { speaker: "리사", file: "segment_06.mp3", text: "세 개 있어요." },
+          { speaker: "소피아", file: "segment_07.mp3", text: "룸메이트 있어요?" },
+          { speaker: "리사", file: "segment_08.mp3", text: "네." },
+          { speaker: "리사", file: "segment_09.mp3", text: "두 명 있어요." },
+          { speaker: "소피아", file: "segment_10.mp3", text: "룸메이트도 학생이에요?" },
+          { speaker: "리사", file: "segment_11.mp3", text: "네." },
+          { speaker: "리사", file: "segment_12.mp3", text: "제니하고 유미는 생물학을 공부해요." },
+          { speaker: "리사", file: "segment_13.mp3", text: "그리고 제니는 저희 한국어반 친구예요." },
+          { speaker: "소피아", file: "segment_14.mp3", text: "룸메이트들하고 사이가 좋아요?" },
+          { speaker: "리사", file: "segment_15.mp3", text: "네." },
+          { speaker: "리사", file: "segment_16.mp3", text: "사이가 아주 좋아요." },
+          { speaker: "소피아", file: "segment_17.mp3", text: "이건 누구 방이에요?" },
+          { speaker: "리사", file: "segment_18.mp3", text: "제 방이에요." },
+          { speaker: "소피아", file: "segment_19.mp3", text: "방이 참 예뻐요." },
+          { speaker: "리사", file: "segment_20.mp3", text: "고마워요." }
+        ]
+      },
+      {
+        label: "Narration", title: "소피아의 가족",
+        dir: "Textbook_Lesson4_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_03.mp3", text: "소피아는 우리 반 친구예요." },
+          { speaker: "나레이터", file: "segment_04.mp3", text: "한국어하고 경제학을 공부해요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "소피아는 중국 사람이에요." },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "집이 홍콩이에요." },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "홍콩에 아버지하고 어머니가 계세요." },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "그리고 오빠하고 동생도 홍콩에 있어요." },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "소피아만 미국에 있어요." },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "소피아 오빠는 대학원생이에요." },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "생물학을 공부해요." },
+          { speaker: "나레이터", file: "segment_12.mp3", text: "소피아 여동생은 고등학생이에요." },
+          { speaker: "나레이터", file: "segment_13.mp3", text: "소피아하고 소피아 동생은 사이가 참 좋아요." }
+        ]
+      }
+    ]
+  },
+  {
+    title: "Lesson 5: At the Bookstore",
+    sections: [
+      {
+        label: "Conversation 1", title: "서점에서 친구를 만나요",
+        dir: "Textbook_Lesson5_C1_3rd_Edition",
+        lines: [
+          { speaker: "제니", file: "segment_04.mp3", text: "리사 씨, 안녕하세요?" },
+          { speaker: "리사", file: "segment_05.mp3", text: "어, 제니 씨." },
+          { speaker: "리사", file: "segment_06.mp3", text: "오래간만이에요." },
+          { speaker: "제니", file: "segment_07.mp3", text: "네, 오랜만이에요." },
+          { speaker: "제니", file: "segment_08.mp3", text: "그런데 어디 가세요?" },
+          { speaker: "리사", file: "segment_09.mp3", text: "커피숍에 가요." },
+          { speaker: "리사", file: "segment_10.mp3", text: "제니 씨는 어디 가세요?" },
+          { speaker: "제니", file: "segment_11.mp3", text: "저는 서점에 가요." },
+          { speaker: "제니", file: "segment_12.mp3", text: "친구가 학교 앞 서점에서 일해요." },
+          { speaker: "리사", file: "segment_13.mp3", text: "아, 그래요?" },
+          { speaker: "리사", file: "segment_14.mp3", text: "그럼 다음에 또 봐요." },
+          { speaker: "제니", file: "segment_15.mp3", text: "네, 안녕히 가세요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "선물 사러 백화점에 가요",
+        dir: "Textbook_Lesson5_C2_3rd_Edition",
+        lines: [
+          { speaker: "소피아", file: "segment_03.mp3", text: "마이클 씨," },
+          { speaker: "소피아", file: "segment_04.mp3", text: "오늘 뭐 하세요?" },
+          { speaker: "마이클", file: "segment_05.mp3", text: "친구 생일 선물 사러 백화점에 가요." },
+          { speaker: "소피아", file: "segment_06.mp3", text: "친구 생일이 언제예요?" },
+          { speaker: "마이클", file: "segment_07.mp3", text: "이번 토요일이에요." },
+          { speaker: "마이클", file: "segment_08.mp3", text: "소피아 씨는 오늘 뭐 하세요?" },
+          { speaker: "소피아", file: "segment_09.mp3", text: "저는 수업 들으러 학교에 가요." },
+          { speaker: "마이클", file: "segment_10.mp3", text: "수업이 몇 시에 있어요?" },
+          { speaker: "소피아", file: "segment_11.mp3", text: "오전 열 시에 있어요." },
+          { speaker: "마이클", file: "segment_12.mp3", text: "그럼 오후에 저하고 같이 백화점에 가요." },
+          { speaker: "소피아", file: "segment_13.mp3", text: "네, 좋아요." },
+          { speaker: "마이클", file: "segment_14.mp3", text: "3시 30분 괜찮아요?" },
+          { speaker: "소피아", file: "segment_15.mp3", text: "네." },
+          { speaker: "소피아", file: "segment_16.mp3", text: "괜찮아요." }
+        ]
+      },
+      {
+        label: "Narration", title: "생일 선물",
+        dir: "Textbook_Lesson5_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_02.mp3", text: "생일 선물" },
+          { speaker: "나레이터", file: "segment_03.mp3", text: "이번 토요일이" },
+          { speaker: "나레이터", file: "segment_04.mp3", text: "내 친구 스티브 생일이에요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "그래서 오늘 생일 선물을 사러 백화점에 가요." },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "소피아하고 같이 가요." },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "백화점 안에는 커피숍," },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "식당," },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "옷가게," },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "서점이 있어요." },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "1층에 서점하고 커피숍이 있어요." },
+          { speaker: "나레이터", file: "segment_12.mp3", text: "2층에는 옷가게가 있어요." },
+          { speaker: "나레이터", file: "segment_13.mp3", text: "그리고 3층에는 식당이 있어요." },
+          { speaker: "나레이터", file: "segment_14.mp3", text: "스티브가 책을 아주 좋아해요." },
+          { speaker: "나레이터", file: "segment_15.mp3", text: "그래서 저는 서점에 책을 사러 가요." },
+          { speaker: "나레이터", file: "segment_16.mp3", text: "소피아는 옷가게에 옷을 사러 가요." },
+          { speaker: "나레이터", file: "segment_17.mp3", text: "옷가게 옷이 아주 예뻐요." }
+        ]
+      }
+    ]
+  },
+  {
+    title: "Lesson 6: My Day",
+    sections: [
+      {
+        label: "Conversation 1", title: "차로 한 시간쯤 걸려요",
+        dir: "Textbook_Lesson6_C1_3rd_Edition",
+        lines: [
+          { speaker: "마이클", file: "segment_04.mp3", text: "제니 씨," },
+          { speaker: "마이클", file: "segment_05.mp3", text: "어디 살아요?" },
+          { speaker: "제니", file: "segment_06.mp3", text: "한인타운에 살아요." },
+          { speaker: "마이클", file: "segment_07.mp3", text: "집에서 학교까지 얼마나 걸려요?" },
+          { speaker: "제니", file: "segment_08.mp3", text: "좀 멀어요." },
+          { speaker: "제니", file: "segment_09.mp3", text: "차로 한 시간쯤 걸려요." },
+          { speaker: "제니", file: "segment_10.mp3", text: "마이클 씨는 어디 살아요?" },
+          { speaker: "마이클", file: "segment_11.mp3", text: "저는 학교 앞 아파트에 살아요." },
+          { speaker: "마이클", file: "segment_12.mp3", text: "아주 가까워요." },
+          { speaker: "마이클", file: "segment_13.mp3", text: "보통 걸어서 5분 걸려요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "어제 뭐 했어요?",
+        dir: "Textbook_Lesson6_C2_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_02.mp3", text: "어제 뭐 했어요?" },
+          { speaker: "마이클", file: "segment_03.mp3", text: "유미 씨," },
+          { speaker: "마이클", file: "segment_04.mp3", text: "어제 오후에 뭐 했어요?" },
+          { speaker: "유미", file: "segment_05.mp3", text: "학교 수영장에서 수영했어요." },
+          { speaker: "유미", file: "segment_06.mp3", text: "마이클 씨는 뭐 했어요?" },
+          { speaker: "마이클", file: "segment_07.mp3", text: "친구하고 같이 테니스 쳤어요." },
+          { speaker: "유미", file: "segment_08.mp3", text: "아, 제니하고 쳤어요?" },
+          { speaker: "마이클", file: "segment_09.mp3", text: "아니요." },
+          { speaker: "마이클", file: "segment_10.mp3", text: "제니는 테니스 안 좋아해요." },
+          { speaker: "마이클", file: "segment_11.mp3", text: "유미 씨는 테니스 좋아해요?" },
+          { speaker: "유미", file: "segment_12.mp3", text: "네." },
+          { speaker: "유미", file: "segment_13.mp3", text: "그런데 잘 못 쳐요." }
+        ]
+      },
+      {
+        label: "Narration", title: "마이클의 하루",
+        dir: "Textbook_Lesson6_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_03.mp3", text: "저는 보통 7시에 일어나요." },
+          { speaker: "나레이터", file: "segment_04.mp3", text: "그런데 오늘은 8시 30분에 일어났어요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "그래서 아침을 못 먹었어요." },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "수업은 아홉 시에 있었어요." },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "기숙사에서 학교까지는 가까워요." },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "그래서 보통 걸어서 가요." },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "오후에는 수업이 없었어요." },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "그래서 리사하고 테니스를 쳤어요." },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "리사는 제 여자친구예요." },
+          { speaker: "나레이터", file: "segment_12.mp3", text: "리사도 한국어 수업을 들어요." },
+          { speaker: "나레이터", file: "segment_13.mp3", text: "여섯 시쯤 리사하고 같이 저녁을 먹으러 기숙사 식당에 갔어요." },
+          { speaker: "나레이터", file: "segment_14.mp3", text: "그리고 저녁에는 도서관에서 숙제를 했어요." },
+          { speaker: "나레이터", file: "segment_15.mp3", text: "숙제가 어려웠어요." },
+          { speaker: "나레이터", file: "segment_16.mp3", text: "오늘 하루는 아주 바빴어요." }
+        ]
+      }
+    ]
+  },
+  {
+    title: "Lesson 7: The Weekend",
+    sections: [
+      {
+        label: "Conversation 1", title: "친구하고 영화 볼 거예요",
+        dir: "Textbook_Lesson7_C1_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_03.mp3", text: "친구하고 영화 볼 거예요." },
+          { speaker: "리사", file: "segment_05.mp3", text: "스티브 씨," },
+          { speaker: "리사", file: "segment_06.mp3", text: "이번 주말에" },
+          { speaker: "리사", file: "segment_07.mp3", text: "약속 있으세요?" },
+          { speaker: "스티브", file: "segment_08.mp3", text: "아니요." },
+          { speaker: "스티브", file: "segment_09.mp3", text: "없어요." },
+          { speaker: "리사", file: "segment_10.mp3", text: "저는 친구하고 영화 볼 거예요." },
+          { speaker: "리사", file: "segment_11.mp3", text: "스티브 씨도 같이 가요." },
+          { speaker: "스티브", file: "segment_12.mp3", text: "무슨 영화 볼 거예요?" },
+          { speaker: "리사", file: "segment_13.mp3", text: "액션 영화요." },
+          { speaker: "스티브", file: "segment_14.mp3", text: "네." },
+          { speaker: "스티브", file: "segment_15.mp3", text: "같이 가요." },
+          { speaker: "스티브", file: "segment_16.mp3", text: "저도 액션 영화 좋아해요." },
+          { speaker: "스티브", file: "segment_17.mp3", text: "어느 영화관에서 볼 거예요?" },
+          { speaker: "리사", file: "segment_18.mp3", text: "브로드웨이 극장 어때요?" },
+          { speaker: "스티브", file: "segment_19.mp3", text: "네." },
+          { speaker: "스티브", file: "segment_20.mp3", text: "좋아요." },
+          { speaker: "리사", file: "segment_21.mp3", text: "일요일 오전 어때요?" },
+          { speaker: "스티브", file: "segment_22.mp3", text: "좋아요." },
+          { speaker: "스티브", file: "segment_23.mp3", text: "오전에는 사람이 없을 거예요." }
+        ]
+      },
+      {
+        label: "Conversation 2", title: "파티에 안 갈 거예요?",
+        dir: "Textbook_Lesson7_C2_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_02.mp3", text: "파티에 안 갈 거예요?" },
+          { speaker: "마이클", file: "segment_03.mp3", text: "소피아 씨," },
+          { speaker: "마이클", file: "segment_04.mp3", text: "다음 주말에 뭐 하세요?" },
+          { speaker: "소피아", file: "segment_05.mp3", text: "여동생이 뉴욕에서 와요." },
+          { speaker: "소피아", file: "segment_06.mp3", text: "그래서 집에서 청소하고 음식 준비할 거예요." },
+          { speaker: "마이클", file: "segment_07.mp3", text: "아 그럼," },
+          { speaker: "마이클", file: "segment_08.mp3", text: "학기말 파티에 안 갈 거예요?" },
+          { speaker: "소피아", file: "segment_09.mp3", text: "네." },
+          { speaker: "소피아", file: "segment_10.mp3", text: "아마 못 갈 거예요." },
+          { speaker: "마이클", file: "segment_11.mp3", text: "동생을 자주 못 만나요?" },
+          { speaker: "소피아", file: "segment_12.mp3", text: "네." },
+          { speaker: "소피아", file: "segment_13.mp3", text: "자주 못 봐요." },
+          { speaker: "소피아", file: "segment_14.mp3", text: "그래서 오랜만에 이야기를 많이 할 거예요." },
+          { speaker: "마이클", file: "segment_15.mp3", text: "그럼 동생하고 주말 잘 보내세요." },
+          { speaker: "소피아", file: "segment_16.mp3", text: "마이클 씨도 방학 잘 보내세요." }
+        ]
+      },
+      {
+        label: "Narration", title: "소피아의 주말",
+        dir: "Textbook_Lesson7_N_3rd_Edition",
+        lines: [
+          { speaker: "나레이터", file: "segment_02.mp3", text: "소피아의 주말" },
+          { speaker: "나레이터", file: "segment_03.mp3", text: "이번 학기에는 아주 바빴어요." },
+          { speaker: "나레이터", file: "segment_05.mp3", text: "지난주에는 시험이 많았어요." },
+          { speaker: "나레이터", file: "segment_06.mp3", text: "주말에는 친구들하고 같이 영화를 보러 갔어요." },
+          { speaker: "나레이터", file: "segment_07.mp3", text: "영화가 참 재미있었어요." },
+          { speaker: "나레이터", file: "segment_08.mp3", text: "영화를 보고" },
+          { speaker: "나레이터", file: "segment_09.mp3", text: "중국음식을 먹었어요." },
+          { speaker: "나레이터", file: "segment_10.mp3", text: "다음 주말에는 여동생이 뉴욕에서 올 거예요." },
+          { speaker: "나레이터", file: "segment_11.mp3", text: "동생은 다음 학기에 대학에 가요." },
+          { speaker: "나레이터", file: "segment_12.mp3", text: "심리학을 전공할 거예요." },
+          { speaker: "나레이터", file: "segment_13.mp3", text: "동생도 저도 많이 바빠요." },
+          { speaker: "나레이터", file: "segment_14.mp3", text: "그래서" },
+          { speaker: "나레이터", file: "segment_15.mp3", text: "서로 전화를 자주 못 해요." },
+          { speaker: "나레이터", file: "segment_16.mp3", text: "이번에 동생하고 오랜만에 이야기를 많이 할 거예요." },
+          { speaker: "나레이터", file: "segment_17.mp3", text: "동생이" },
+          { speaker: "나레이터", file: "segment_18.mp3", text: "한국 음식을 좋아해요." },
+          { speaker: "나레이터", file: "segment_19.mp3", text: "그래서" },
+          { speaker: "나레이터", file: "segment_20.mp3", text: "집에서 한국 음식을 만들 거예요." }
+        ]
+      }
+    ]
+  }
+];
+
+const COLORS = {
+  '스티브': '#3b82f6',
+  '유미':   '#16a34a',
+  '마이클': '#d97706',
+  '소피아': '#9333ea',
+  '리사':   '#0891b2',
+  '제니':   '#e11d48',
+  '나레이터': '#64748b'
+};
+
+let currentAudio = null;
+let playQueue = [];
+
+function stop() {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  playQueue = [];
+}
+
+function playNext() {
+  if (!playQueue.length) return;
+  const src = playQueue.shift();
+  currentAudio = new Audio(src);
+  currentAudio.onended = () => setTimeout(playNext, 400);
+  currentAudio.onerror = () => setTimeout(playNext, 100);
+  currentAudio.play().catch(() => setTimeout(playNext, 100));
+}
+
+function playFiles(paths) {
+  stop();
+  playQueue = [...paths];
+  playNext();
+}
+
+function buildBlocks(lines) {
+  const blocks = [];
+  let cur = null;
+  for (const line of lines) {
+    if (!cur || cur.speaker !== line.speaker) {
+      cur = { speaker: line.speaker, lines: [] };
+      blocks.push(cur);
+    }
+    cur.lines.push(line);
+  }
+  return blocks;
+}
+
+let activeLesson = 0;
+let activeSection = 0;
+
+function render() {
+  const app = document.getElementById('app');
+
+  // Lesson nav
+  let html = '<nav class="lesson-nav">';
+  LESSONS.forEach((l, i) => {
+    html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">Lesson ${i+1}</button>`;
+  });
+  html += '</nav>';
+
+  const lesson = LESSONS[activeLesson];
+  html += `<div class="lesson-header"><div class="lesson-title">${lesson.title}</div></div>`;
+
+  // Section nav
+  html += '<div class="section-nav">';
+  lesson.sections.forEach((s, i) => {
+    html += `<button class="section-btn${i===activeSection?' active':''}" onclick="setSection(${i})">${s.label}</button>`;
+  });
+  html += '</div>';
+
+  const sec = lesson.sections[activeSection];
+  html += '<div class="section-content">';
+  html += `<div class="section-header"><div class="section-label">${sec.label}</div><div class="section-title">${sec.title}</div></div>`;
+
+  const blocks = buildBlocks(sec.lines);
+  const allPaths = sec.lines.map(l => `audio/${sec.dir}/${l.file}`);
+
+  blocks.forEach((block, bi) => {
+    const color = COLORS[block.speaker] || '#64748b';
+    const turnPaths = block.lines.map(l => `audio/${sec.dir}/${l.file}`);
+    const turnId = `turn_${bi}`;
+    html += `<div class="speaker-block">`;
+    html += `<div class="speaker-header">`;
+    html += `<div class="speaker-name"><span class="speaker-dot" style="background:${color}"></span><span style="color:${color}">${block.speaker}</span></div>`;
+    html += `<button class="play-turn-btn" id="${turnId}" style="color:${color};border-color:${color}" onclick="playTurn(${JSON.stringify(turnPaths)}, '${turnId}')">▶ Play Turn</button>`;
+    html += `</div>`;
+    block.lines.forEach((line, li) => {
+      const path = `audio/${sec.dir}/${line.file}`;
+      const lineId = `line_${bi}_${li}`;
+      html += `<div class="line-row">`;
+      html += `<div class="line-text">${line.text}</div>`;
+      html += `<button class="play-line-btn" id="${lineId}" style="background:${color}" onclick="playSingle('${path}', '${lineId}')">▶</button>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+
+  const allId = `all_${activeLesson}_${activeSection}`;
+  html += `<div class="play-all-wrap"><button class="play-all-btn" id="${allId}" onclick="playAll(${JSON.stringify(allPaths)}, '${allId}')">▶ Play All</button></div>`;
+  html += '</div>';
+
+  app.innerHTML = html;
+}
+
+function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); }
+function setSection(i) { activeSection = i; stop(); render(); }
+function playSingle(path, id) { playFiles([path]); }
+function playTurn(paths, id) { playFiles(paths); }
+function playAll(paths, id) { playFiles(paths); }
+
+render();
+</script>
 </body>
 </html>
