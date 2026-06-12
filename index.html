@@ -25,11 +25,11 @@
     .speaker-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
     .speaker-name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
     .speaker-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .play-turn-btn { padding: 5px 13px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; background: transparent; min-height: 32px; }
+    .play-turn-btn { padding: 7px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; background: transparent; min-height: 38px; min-width: 120px; text-align: center; }
     .line-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; }
     .line-row + .line-row { border-top: 1px solid #f8fafc; }
     .line-text { font-size: 17px; flex: 1; line-height: 1.4; }
-    .play-line-btn { width: 34px; height: 34px; border: none; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; margin-left: 12px; flex-shrink: 0; color: #fff; }
+    .play-line-btn { padding: 7px 16px; border: none; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; min-height: 38px; min-width: 120px; text-align: center; margin-left: 12px; flex-shrink: 0; color: #fff; }
     .play-all-wrap { padding: 8px 0 4px; }
     .play-all-btn { width: 100%; padding: 13px; border: 2px solid #1e293b; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; background: transparent; color: #1e293b; }
     .play-all-btn:active { background: #1e293b; color: #fff; }
@@ -486,6 +486,7 @@ const COLORS = {
 
 let currentAudio = null;
 let playQueue = [];
+const REG = {};
 
 function stop() {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
@@ -506,6 +507,8 @@ function playFiles(paths) {
   playQueue = [...paths];
   playNext();
 }
+
+function playReg(id) { playFiles(REG[id]); }
 
 function buildBlocks(lines) {
   const blocks = [];
@@ -548,30 +551,32 @@ function render() {
   html += `<div class="section-header"><div class="section-label">${sec.label}</div><div class="section-title">${sec.title}</div></div>`;
 
   const blocks = buildBlocks(sec.lines);
-  const allPaths = sec.lines.map(l => `audio/${sec.dir}/${l.file}`);
+  const allKey = `a_${activeLesson}_${activeSection}`;
+  REG[allKey] = sec.lines.map(l => `audio/${sec.dir}/${l.file}`);
 
   blocks.forEach((block, bi) => {
     const color = COLORS[block.speaker] || '#64748b';
-    const turnPaths = block.lines.map(l => `audio/${sec.dir}/${l.file}`);
-    const turnId = `turn_${bi}`;
+    const turnKey = `t_${activeLesson}_${activeSection}_${bi}`;
+    REG[turnKey] = block.lines.map(l => `audio/${sec.dir}/${l.file}`);
+
     html += `<div class="speaker-block">`;
     html += `<div class="speaker-header">`;
     html += `<div class="speaker-name"><span class="speaker-dot" style="background:${color}"></span><span style="color:${color}">${block.speaker}</span></div>`;
-    html += `<button class="play-turn-btn" id="${turnId}" style="color:${color};border-color:${color}" onclick="playTurn(${JSON.stringify(turnPaths)}, '${turnId}')">▶ Play Turn</button>`;
+    html += `<button class="play-turn-btn" style="color:${color};border-color:${color}" onclick="playReg('${turnKey}')">▶ Play Turn</button>`;
     html += `</div>`;
+
     block.lines.forEach((line, li) => {
-      const path = `audio/${sec.dir}/${line.file}`;
-      const lineId = `line_${bi}_${li}`;
+      const lineKey = `l_${activeLesson}_${activeSection}_${bi}_${li}`;
+      REG[lineKey] = [`audio/${sec.dir}/${line.file}`];
       html += `<div class="line-row">`;
       html += `<div class="line-text">${line.text}</div>`;
-      html += `<button class="play-line-btn" id="${lineId}" style="background:${color}" onclick="playSingle('${path}', '${lineId}')">▶</button>`;
+      html += `<button class="play-line-btn" style="background:${color}" onclick="playReg('${lineKey}')">▶</button>`;
       html += `</div>`;
     });
     html += `</div>`;
   });
 
-  const allId = `all_${activeLesson}_${activeSection}`;
-  html += `<div class="play-all-wrap"><button class="play-all-btn" id="${allId}" onclick="playAll(${JSON.stringify(allPaths)}, '${allId}')">▶ Play All</button></div>`;
+  html += `<div class="play-all-wrap"><button class="play-all-btn" onclick="playReg('${allKey}')">▶ Play All</button></div>`;
   html += '</div>';
 
   app.innerHTML = html;
@@ -579,9 +584,6 @@ function render() {
 
 function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); }
 function setSection(i) { activeSection = i; stop(); render(); }
-function playSingle(path, id) { playFiles([path]); }
-function playTurn(paths, id) { playFiles(paths); }
-function playAll(paths, id) { playFiles(paths); }
 
 render();
 </script>
