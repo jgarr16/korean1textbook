@@ -5,12 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Korean 1 Textbook</title>
   <script>
-    (function(){try{var k="koreanFontScale",v=parseFloat(localStorage.getItem(k));if(!isNaN(v)){v=Math.round(Math.min(1.8,Math.max(0.8,v))*100)/100;document.documentElement.style.setProperty("--font-scale",String(v));}}catch(e){}}());
+    (function(){
+      try {
+        var f=parseFloat(localStorage.getItem("koreanFontScale"));
+        if(!isNaN(f)){f=Math.round(Math.min(1.8,Math.max(0.8,f))*100)/100;document.documentElement.style.setProperty("--font-scale",String(f));}
+        var t=localStorage.getItem("koreanTheme");
+        if(t==="dark"||t==="light") document.documentElement.setAttribute("data-theme",t);
+      } catch(e){}
+    }());
   </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --font-scale: 1; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; font-size: calc(16px * var(--font-scale)); }
+    :root {
+      --font-scale: 1;
+      --bg: #f8fafc; --card: #fff; --snav-bg: #f1f5f9;
+      --fg: #1e293b; --muted: #64748b;
+      --border: #e2e8f0; --sep: #f1f5f9;
+      --sbtn-bg: #fff; --sbtn-border: #cbd5e1; --sbtn-text: #64748b;
+      --sbtn-active-bg: #1e293b; --sbtn-active-border: #1e293b; --sbtn-active-text: #fff;
+      --pall-border: #1e293b; --pall-text: #1e293b; --pall-active-bg: #1e293b; --pall-active-text: #fff;
+    }
+    html[data-theme="dark"] {
+      --bg: #0f172a; --card: #1e293b; --snav-bg: #1e293b;
+      --fg: #e2e8f0; --muted: #94a3b8;
+      --border: #334155; --sep: #0f172a;
+      --sbtn-bg: #1e293b; --sbtn-border: #334155; --sbtn-text: #94a3b8;
+      --sbtn-active-bg: #3b82f6; --sbtn-active-border: #3b82f6; --sbtn-active-text: #fff;
+      --pall-border: #475569; --pall-text: #e2e8f0; --pall-active-bg: #475569; --pall-active-text: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme]) {
+        --bg: #0f172a; --card: #1e293b; --snav-bg: #1e293b;
+        --fg: #e2e8f0; --muted: #94a3b8;
+        --border: #334155; --sep: #0f172a;
+        --sbtn-bg: #1e293b; --sbtn-border: #334155; --sbtn-text: #94a3b8;
+        --sbtn-active-bg: #3b82f6; --sbtn-active-border: #3b82f6; --sbtn-active-text: #fff;
+        --pall-border: #475569; --pall-text: #e2e8f0; --pall-active-bg: #475569; --pall-active-text: #fff;
+      }
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--fg); font-size: calc(16px * var(--font-scale)); }
     .nav-wrapper { display: flex; align-items: center; background: #1e293b; }
     .lesson-nav { display: flex; gap: 4px; padding: 10px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .lesson-nav::-webkit-scrollbar { display: none; }
@@ -19,32 +52,31 @@
     .lesson-btn.active { background: #3b82f6; color: #fff; }
     .lesson-header { padding: 18px 16px 6px; }
     .lesson-title { font-size: 1.25em; font-weight: 700; }
-    .section-nav { display: flex; gap: 6px; padding: 10px 16px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+    .section-nav { display: flex; gap: 6px; padding: 10px 16px; background: var(--snav-bg); border-bottom: 1px solid var(--border); overflow-x: auto; }
     .section-nav::-webkit-scrollbar { display: none; }
-    .section-btn { padding: 6px 14px; border: 1px solid #cbd5e1; border-radius: 20px; cursor: pointer; font-size: 13px; background: #fff; color: #64748b; white-space: nowrap; }
-    .section-btn.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+    .section-btn { padding: 6px 14px; border: 1px solid var(--sbtn-border); border-radius: 20px; cursor: pointer; font-size: 13px; background: var(--sbtn-bg); color: var(--sbtn-text); white-space: nowrap; }
+    .section-btn.active { background: var(--sbtn-active-bg); color: var(--sbtn-active-text); border-color: var(--sbtn-active-border); }
     .section-content { padding: 14px 16px 32px; }
     .section-header { margin-bottom: 16px; }
-    .section-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.08em; }
+    .section-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; }
     .section-title { font-size: 1.125em; font-weight: 700; margin-top: 3px; }
-    .speaker-block { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
-    .speaker-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
+    .speaker-block { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+    .speaker-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
     .speaker-name { font-weight: 700; font-size: 0.9375em; display: flex; align-items: center; gap: 8px; }
     .speaker-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .play-turn-btn { padding: 7px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8125em; font-weight: 600; background: transparent; min-height: 38px; min-width: 120px; text-align: center; }
     .line-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; }
-    .line-row + .line-row { border-top: 1px solid #f8fafc; }
+    .line-row + .line-row { border-top: 1px solid var(--sep); }
     .line-text { font-size: 1.0625em; flex: 1; line-height: 1.4; }
     .play-line-btn { padding: 7px 16px; border: none; border-radius: 20px; cursor: pointer; font-size: 0.8125em; font-weight: 600; min-height: 38px; min-width: 120px; text-align: center; margin-left: 12px; flex-shrink: 0; color: #fff; }
     .play-all-wrap { padding: 8px 0 4px; }
-    .play-all-btn { width: 100%; padding: 13px; border: 2px solid #1e293b; border-radius: 8px; cursor: pointer; font-size: 0.875em; font-weight: 700; background: transparent; color: #1e293b; }
-    .play-all-btn:active { background: #1e293b; color: #fff; }
+    .play-all-btn { width: 100%; padding: 13px; border: 2px solid var(--pall-border); border-radius: 8px; cursor: pointer; font-size: 0.875em; font-weight: 700; background: transparent; color: var(--pall-text); }
+    .play-all-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
     @media (hover: hover) {
-      .play-all-btn:hover { background: #1e293b; color: #fff; }
+      .play-all-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); }
       .lesson-btn:hover:not(.active) { background: #475569; }
     }
-    /* Font size control */
-    .font-spacer { flex: 1; }
+    /* Controls dropdown (font + theme) */
     .font-dropdown { position: relative; flex-shrink: 0; }
     .font-dropdown summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; min-width: 44px; min-height: 36px; padding: 5px 9px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; -webkit-tap-highlight-color: transparent; user-select: none; }
     .font-dropdown summary::-webkit-details-marker { display: none; }
@@ -52,12 +84,13 @@
     .font-summary-arrow { font-size: 10px; color: #94a3b8; line-height: 1; }
     .font-dropdown[open] summary { background: #475569; }
     .font-dropdown[open] .font-summary-arrow { display: inline-block; transform: rotate(180deg); }
-    .font-dropdown-panel { position: absolute; right: 0; top: 100%; margin-top: 6px; padding: 10px 11px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; z-index: 20; min-width: 180px; }
-    .font-tools { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-    .font-tools button { min-width: 44px; min-height: 36px; padding: 5px 8px; font: inherit; font-size: 13px; font-weight: 700; line-height: 1; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .font-tools button:active { background: #475569; }
-    .font-tools button:disabled { opacity: 0.35; cursor: not-allowed; }
-    .font-pct { font-size: 11px; font-weight: 500; color: #94a3b8; margin-right: 4px; user-select: none; min-width: 36px; text-align: right; }
+    .font-dropdown-panel { position: absolute; right: 0; top: 100%; margin-top: 6px; padding: 10px 11px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; z-index: 20; min-width: 196px; }
+    .ctrl-row { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+    .ctrl-row + .ctrl-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155; }
+    .ctrl-row button { min-width: 44px; min-height: 36px; padding: 5px 8px; font: inherit; font-size: 13px; font-weight: 700; line-height: 1; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .ctrl-row button:active, .ctrl-row button.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+    .ctrl-row button:disabled { opacity: 0.35; cursor: not-allowed; }
+    .ctrl-label { font-size: 11px; font-weight: 500; color: #94a3b8; margin-right: 2px; user-select: none; min-width: 36px; text-align: right; }
   </style>
 </head>
 <body>
@@ -557,16 +590,21 @@ function render() {
   });
   html += `</nav><div class="nav-controls">
   <details class="font-dropdown" id="font-dropdown">
-    <summary title="Text size">
+    <summary title="Display settings">
       <span class="font-summary-aa">Aa</span>
       <span class="font-summary-arrow">▾</span>
     </summary>
     <div class="font-dropdown-panel">
-      <div class="font-tools">
-        <span class="font-pct" id="font-pct"></span>
-        <button type="button" id="font-smaller" title="Smaller">A−</button>
-        <button type="button" id="font-reset" title="Reset">A</button>
-        <button type="button" id="font-larger" title="Larger">A+</button>
+      <div class="ctrl-row">
+        <span class="ctrl-label" id="font-pct"></span>
+        <button type="button" id="font-smaller" title="Smaller text">A−</button>
+        <button type="button" id="font-reset" title="Default text size">A</button>
+        <button type="button" id="font-larger" title="Larger text">A+</button>
+      </div>
+      <div class="ctrl-row">
+        <button type="button" id="theme-light">Light</button>
+        <button type="button" id="theme-system">System</button>
+        <button type="button" id="theme-dark">Dark</button>
       </div>
     </div>
   </details>
@@ -618,37 +656,59 @@ function render() {
   app.innerHTML = html;
 }
 
-function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); fontInit(); }
-function setSection(i) { activeSection = i; stop(); render(); fontInit(); }
+function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); controlsInit(); }
+function setSection(i) { activeSection = i; stop(); render(); controlsInit(); }
 
 render();
 
 (function(){
-  var KEY = "koreanFontScale", DEF = 1, MIN = 0.8, MAX = 1.8, STEP = 0.1;
-  function rd(x){ return Math.round(x*100)/100; }
-  function get(){ var v=parseFloat(localStorage.getItem(KEY)); return isNaN(v)?DEF:rd(Math.min(MAX,Math.max(MIN,v))); }
-  function apply(s){
-    s = rd(Math.min(MAX,Math.max(MIN,s)));
+  // Font
+  var FK="koreanFontScale", FDEF=1, FMIN=0.8, FMAX=1.8, FSTEP=0.1;
+  function frd(x){ return Math.round(x*100)/100; }
+  function fget(){ var v=parseFloat(localStorage.getItem(FK)); return isNaN(v)?FDEF:frd(Math.min(FMAX,Math.max(FMIN,v))); }
+  function fapply(s){
+    s=frd(Math.min(FMAX,Math.max(FMIN,s)));
     document.documentElement.style.setProperty("--font-scale",String(s));
-    try{ localStorage.setItem(KEY,String(s)); }catch(e){}
+    try{ localStorage.setItem(FK,String(s)); }catch(e){}
     var pct=document.getElementById("font-pct");
     var sm=document.getElementById("font-smaller");
     var lg=document.getElementById("font-larger");
     if(pct) pct.textContent=Math.round(s*100)+"%";
-    if(sm) sm.disabled=s<=MIN+0.001;
-    if(lg) lg.disabled=s>=MAX-0.001;
+    if(sm) sm.disabled=s<=FMIN+0.001;
+    if(lg) lg.disabled=s>=FMAX-0.001;
   }
+
+  // Theme
+  var TK="koreanTheme";
+  function tget(){ return localStorage.getItem(TK)||"system"; }
+  function tapply(t){
+    try{ localStorage.setItem(TK,t); }catch(e){}
+    if(t==="dark") document.documentElement.setAttribute("data-theme","dark");
+    else if(t==="light") document.documentElement.setAttribute("data-theme","light");
+    else document.documentElement.removeAttribute("data-theme");
+    ["light","system","dark"].forEach(function(x){
+      var b=document.getElementById("theme-"+x);
+      if(b){ b.classList.toggle("active", x===t); }
+    });
+  }
+
   function close(){ var d=document.getElementById("font-dropdown"); if(d) d.removeAttribute("open"); }
-  window.fontInit = function(){
-    apply(get());
+
+  window.controlsInit = function(){
+    fapply(fget());
+    tapply(tget());
     var sm=document.getElementById("font-smaller");
     var rs=document.getElementById("font-reset");
     var lg=document.getElementById("font-larger");
-    if(sm) sm.onclick=function(e){ e.preventDefault(); apply(get()-STEP); close(); };
-    if(rs) rs.onclick=function(e){ e.preventDefault(); apply(DEF); close(); };
-    if(lg) lg.onclick=function(e){ e.preventDefault(); apply(get()+STEP); close(); };
+    if(sm) sm.onclick=function(e){ e.preventDefault(); fapply(fget()-FSTEP); };
+    if(rs) rs.onclick=function(e){ e.preventDefault(); fapply(FDEF); };
+    if(lg) lg.onclick=function(e){ e.preventDefault(); fapply(fget()+FSTEP); };
+    ["light","system","dark"].forEach(function(x){
+      var b=document.getElementById("theme-"+x);
+      if(b) b.onclick=function(e){ e.preventDefault(); tapply(x); };
+    });
   };
-  fontInit();
+  controlsInit();
 })();
 </script>
 </body>
