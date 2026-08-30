@@ -72,6 +72,7 @@
     .play-all-wrap { padding: 8px 0 4px; }
     .play-all-btn { width: 100%; padding: 13px; border: 2px solid var(--pall-border); border-radius: 8px; cursor: pointer; font-size: 0.875em; font-weight: 700; background: transparent; color: var(--pall-text); }
     .play-all-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
+    .loop-all-btn.looping { background: var(--pall-active-bg); color: var(--pall-active-text); }
     @media (hover: hover) {
       .play-all-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); }
       .lesson-btn:hover:not(.active) { background: #475569; }
@@ -540,20 +541,43 @@ const COLORS = {
 
 let currentAudio = null;
 let playQueue = [];
+let loopSource = null;
+let loopKey = null;
+let playToken = 0;
+let pendingTimer = null;
+const LINE_GAP = 400;
+const LOOP_GAP = 3000;
 const REG = {};
 
+function later(ms, token) {
+  clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(() => { if (token === playToken) playNext(); }, ms);
+}
+
 function stop() {
+  playToken++;
+  clearTimeout(pendingTimer);
+  pendingTimer = null;
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
   playQueue = [];
+  loopSource = null;
+  loopKey = null;
+  syncLoopBtn();
 }
 
 function playNext() {
-  if (!playQueue.length) return;
+  const token = playToken;
+  if (!playQueue.length) {
+    if (!loopSource) return;
+    playQueue = [...loopSource];
+    later(LOOP_GAP - LINE_GAP, token);
+    return;
+  }
   const src = playQueue.shift();
   currentAudio = new Audio(src);
-  currentAudio.onended = () => setTimeout(playNext, 400);
-  currentAudio.onerror = () => setTimeout(playNext, 100);
-  currentAudio.play().catch(() => setTimeout(playNext, 100));
+  currentAudio.onended = () => later(LINE_GAP, token);
+  currentAudio.onerror = () => later(100, token);
+  currentAudio.play().catch(() => later(100, token));
 }
 
 function playFiles(paths) {
@@ -563,6 +587,22 @@ function playFiles(paths) {
 }
 
 function playReg(id) { playFiles(REG[id]); }
+
+function syncLoopBtn() {
+  const btn = document.getElementById('loop-all-btn');
+  if (!btn) return;
+  const on = !!loopKey;
+  btn.classList.toggle('looping', on);
+  btn.textContent = on ? '■ Stop Loop' : '↻ Loop All';
+}
+
+function toggleLoop(id) {
+  if (loopKey === id) { stop(); return; }
+  playFiles(REG[id]);
+  loopSource = [...REG[id]];
+  loopKey = id;
+  syncLoopBtn();
+}
 
 function buildBlocks(lines) {
   const blocks = [];
@@ -651,9 +691,11 @@ function render() {
   });
 
   html += `<div class="play-all-wrap"><button class="play-all-btn" onclick="playReg('${allKey}')">▶ Play All</button></div>`;
+  html += `<div class="play-all-wrap"><button class="play-all-btn loop-all-btn" id="loop-all-btn" onclick="toggleLoop('${allKey}')">↻ Loop All</button></div>`;
   html += '</div>';
 
   app.innerHTML = html;
+  syncLoopBtn();
 }
 
 function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); controlsInit(); }
