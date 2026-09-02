@@ -56,6 +56,12 @@
     .section-tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; }
     .section-tabs::-webkit-scrollbar { display: none; }
     .section-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    @media (max-width: 600px) {
+      .section-nav { flex-wrap: wrap; row-gap: 8px; }
+      .section-tabs { flex: 1 0 100%; }
+      .section-actions { flex: 1 0 100%; }
+      .section-actions .bar-btn { flex: 1; padding: 8px 6px; text-align: center; }
+    }
     .bar-btn { padding: 6px 12px; border: 1px solid var(--pall-border); border-radius: 20px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; background: transparent; color: var(--pall-text); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
     .bar-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
     .bar-btn.looping { background: var(--pall-active-bg); color: var(--pall-active-text); }
