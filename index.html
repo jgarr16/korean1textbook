@@ -92,10 +92,14 @@
     .ctrl-row button:active, .ctrl-row button.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
     .ctrl-row button:disabled { opacity: 0.35; cursor: not-allowed; }
     .ctrl-label { font-size: 11px; font-weight: 500; color: #94a3b8; margin-right: 2px; user-select: none; min-width: 36px; text-align: right; }
+    #stop-fab { position: fixed; right: 16px; bottom: 20px; z-index: 50; display: none; align-items: center; gap: 6px; padding: 13px 22px; border: none; border-radius: 26px; font: inherit; font-size: 15px; font-weight: 700; color: #fff; background: #dc2626; box-shadow: 0 4px 14px rgba(0,0,0,0.35); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    #stop-fab.visible { display: flex; }
+    #stop-fab:active { background: #b91c1c; }
   </style>
 </head>
 <body>
 <div id="app"></div>
+<button id="stop-fab" onclick="stop()">■ Stop</button>
 <script>
 const LESSONS = [
   {
@@ -582,6 +586,7 @@ let prefetchToken = 0;
 let loopSource = null;
 let loopKey = null;
 let playToken = 0;
+let playing = false;
 let pendingTimer = null;
 const LINE_GAP = 400;
 const MERGE_GAP = 500;  // pause between clips inside one merged row
@@ -601,7 +606,9 @@ function stop() {
   playQueue = [];
   loopSource = null;
   loopKey = null;
+  playing = false;
   syncLoopBtn();
+  syncStopFab();
 }
 
 // Single reusable element: on iOS/Android only an element unlocked by a user
@@ -647,7 +654,7 @@ async function prefetchSection(paths) {
 function playNext() {
   const token = playToken;
   if (!playQueue.length) {
-    if (!loopSource) return;
+    if (!loopSource) { playing = false; syncStopFab(); return; }
     playQueue = [...loopSource];
     later(LOOP_GAP - LINE_GAP, token);
     return;
@@ -675,10 +682,17 @@ function entriesFor(dir, lines) {
 function playFiles(paths) {
   stop();
   playQueue = [...paths];
+  playing = true;
+  syncStopFab();
   playNext();
 }
 
 function playReg(id) { playFiles(REG[id]); }
+
+function syncStopFab() {
+  const fab = document.getElementById('stop-fab');
+  if (fab) fab.classList.toggle('visible', playing);
+}
 
 function syncLoopBtn() {
   const btn = document.getElementById('loop-all-btn');
@@ -788,6 +802,7 @@ function render() {
 
   app.innerHTML = html;
   syncLoopBtn();
+  syncStopFab();
   prefetchSection(REG[allKey].map(e => e.src));
 }
 
