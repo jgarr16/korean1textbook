@@ -529,6 +529,42 @@ const LESSONS = [
   }
 ];
 
+// Rows (1-based, per section) whose clips are one utterance and play as one row.
+// Key: "<lesson index>.<section index>"  (sections are C1, C2, Narration).
+const MERGES = {
+  "0.1": [[7,8]],
+  "1.1": [[1,2]],
+  "1.2": [[1,2],[8,9]],
+  "2.0": [[1,2]],
+  "2.1": [[1,2],[3,4],[9,10],[12,13]],
+  "3.0": [[1,2],[9,10],[15,16]],
+  "3.1": [[1,2],[5,6],[8,9],[12,13]],
+  "4.1": [[1,2],[13,14]],
+  "5.0": [[1,2]],
+  "5.1": [[2,3],[8,9],[11,12]],
+  "6.0": [[2,3,4],[5,6],[11,12],[16,17]],
+  "6.1": [[2,3],[8,9],[11,12]]
+};
+
+function applyMerges() {
+  LESSONS.forEach((lesson, li) => {
+    lesson.sections.forEach((sec, si) => {
+      const groups = MERGES[`${li}.${si}`];
+      if (!groups) return;
+      const drop = new Set();
+      for (const g of groups) {
+        const first = sec.lines[g[0] - 1];
+        if (!first) continue;
+        first.files = g.map(r => sec.lines[r - 1]).filter(Boolean).map(l => l.file);
+        first.text = g.map(r => sec.lines[r - 1]).filter(Boolean).map(l => l.text).join(' ');
+        g.slice(1).forEach(r => drop.add(r - 1));
+      }
+      sec.lines = sec.lines.filter((_, i) => !drop.has(i));
+    });
+  });
+}
+applyMerges();
+
 const COLORS = {
   '스티브': '#3b82f6',
   '유미':   '#16a34a',
@@ -541,11 +577,14 @@ const COLORS = {
 
 let currentAudio = null;
 let playQueue = [];
+const BLOBS = new Map();   // path -> object URL (current section only)
+let prefetchToken = 0;
 let loopSource = null;
 let loopKey = null;
 let playToken = 0;
 let pendingTimer = null;
 const LINE_GAP = 400;
+const MERGE_GAP = 500;  // pause between clips inside one merged row
 const LOOP_GAP = 3000;
 const REG = {};
 
@@ -558,11 +597,51 @@ function stop() {
   playToken++;
   clearTimeout(pendingTimer);
   pendingTimer = null;
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentAudio) { currentAudio.pause(); currentAudio.onended = null; currentAudio.onerror = null; }
   playQueue = [];
   loopSource = null;
   loopKey = null;
   syncLoopBtn();
+}
+
+// Single reusable element: on iOS/Android only an element unlocked by a user
+// gesture plays without delay, so we keep one and swap its src.
+function getPlayer() {
+  if (!currentAudio) {
+    currentAudio = new Audio();
+    currentAudio.preload = 'auto';
+  }
+  return currentAudio;
+}
+
+function srcFor(path) { return BLOBS.get(path) || path; }
+
+function clearBlobs() {
+  for (const url of BLOBS.values()) URL.revokeObjectURL(url);
+  BLOBS.clear();
+}
+
+// Pull every clip for the active section into memory so playback between
+// lines is instant instead of a network round-trip per file.
+async function prefetchSection(paths) {
+  prefetchToken++;
+  const token = prefetchToken;
+  clearBlobs();
+  const queue = [...new Set(paths)];
+  const worker = async () => {
+    while (queue.length) {
+      if (token !== prefetchToken) return;
+      const path = queue.shift();
+      try {
+        const res = await fetch(path);
+        if (!res.ok) continue;
+        const blob = await res.blob();
+        if (token !== prefetchToken) return;
+        BLOBS.set(path, URL.createObjectURL(blob));
+      } catch (e) { /* fall back to the network path */ }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
 }
 
 function playNext() {
@@ -573,11 +652,24 @@ function playNext() {
     later(LOOP_GAP - LINE_GAP, token);
     return;
   }
-  const src = playQueue.shift();
-  currentAudio = new Audio(src);
-  currentAudio.onended = () => later(LINE_GAP, token);
-  currentAudio.onerror = () => later(100, token);
-  currentAudio.play().catch(() => later(100, token));
+  const item = playQueue.shift();
+  const a = getPlayer();
+  a.onended = () => later(item.gap, token);
+  a.onerror = () => later(100, token);
+  a.src = srcFor(item.src);
+  a.play().catch(() => later(100, token));
+}
+
+// Flatten lines into playback items; clips inside a merged row get the short gap.
+function entriesFor(dir, lines) {
+  const out = [];
+  for (const line of lines) {
+    const files = line.files || [line.file];
+    files.forEach((f, i) => {
+      out.push({ src: `audio/${dir}/${f}`, gap: i < files.length - 1 ? MERGE_GAP : LINE_GAP });
+    });
+  }
+  return out;
 }
 
 function playFiles(paths) {
@@ -666,12 +758,12 @@ function render() {
 
   const blocks = buildBlocks(sec.lines);
   const allKey = `a_${activeLesson}_${activeSection}`;
-  REG[allKey] = sec.lines.map(l => `audio/${sec.dir}/${l.file}`);
+  REG[allKey] = entriesFor(sec.dir, sec.lines);
 
   blocks.forEach((block, bi) => {
     const color = COLORS[block.speaker] || '#64748b';
     const turnKey = `t_${activeLesson}_${activeSection}_${bi}`;
-    REG[turnKey] = block.lines.map(l => `audio/${sec.dir}/${l.file}`);
+    REG[turnKey] = entriesFor(sec.dir, block.lines);
 
     html += `<div class="speaker-block">`;
     html += `<div class="speaker-header">`;
@@ -681,7 +773,7 @@ function render() {
 
     block.lines.forEach((line, li) => {
       const lineKey = `l_${activeLesson}_${activeSection}_${bi}_${li}`;
-      REG[lineKey] = [`audio/${sec.dir}/${line.file}`];
+      REG[lineKey] = entriesFor(sec.dir, [line]);
       html += `<div class="line-row">`;
       html += `<div class="line-text">${line.text}</div>`;
       html += `<button class="play-line-btn" style="background:${color}" onclick="playReg('${lineKey}')">▶</button>`;
@@ -696,6 +788,7 @@ function render() {
 
   app.innerHTML = html;
   syncLoopBtn();
+  prefetchSection(REG[allKey].map(e => e.src));
 }
 
 function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); controlsInit(); }
