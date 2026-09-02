@@ -52,8 +52,17 @@
     .lesson-btn.active { background: #3b82f6; color: #fff; }
     .lesson-header { padding: 18px 16px 6px; }
     .lesson-title { font-size: 1.25em; font-weight: 700; }
-    .section-nav { display: flex; gap: 6px; padding: 10px 16px; background: var(--snav-bg); border-bottom: 1px solid var(--border); overflow-x: auto; }
-    .section-nav::-webkit-scrollbar { display: none; }
+    .section-nav { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--snav-bg); border-bottom: 1px solid var(--border); }
+    .section-tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; }
+    .section-tabs::-webkit-scrollbar { display: none; }
+    .section-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .bar-btn { padding: 6px 12px; border: 1px solid var(--pall-border); border-radius: 20px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; background: transparent; color: var(--pall-text); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+    .bar-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
+    .bar-btn.looping { background: var(--pall-active-bg); color: var(--pall-active-text); }
+    #stop-bar-btn { display: none; border-color: #dc2626; background: #dc2626; color: #fff; }
+    #stop-bar-btn.visible { display: inline-block; }
+    #stop-bar-btn:active { background: #b91c1c; border-color: #b91c1c; }
+    @media (hover: hover) { .bar-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); } #stop-bar-btn:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; } }
     .section-btn { padding: 6px 14px; border: 1px solid var(--sbtn-border); border-radius: 20px; cursor: pointer; font-size: 13px; background: var(--sbtn-bg); color: var(--sbtn-text); white-space: nowrap; }
     .section-btn.active { background: var(--sbtn-active-bg); color: var(--sbtn-active-text); border-color: var(--sbtn-active-border); }
     .section-content { padding: 14px 16px 32px; }
@@ -69,12 +78,7 @@
     .line-row + .line-row { border-top: 1px solid var(--sep); }
     .line-text { font-size: 1.0625em; flex: 1; line-height: 1.4; }
     .play-line-btn { padding: 7px 16px; border: none; border-radius: 20px; cursor: pointer; font-size: 0.8125em; font-weight: 600; min-height: 38px; min-width: 120px; text-align: center; margin-left: 12px; flex-shrink: 0; color: #fff; }
-    .play-all-wrap { padding: 8px 0 4px; }
-    .play-all-btn { width: 100%; padding: 13px; border: 2px solid var(--pall-border); border-radius: 8px; cursor: pointer; font-size: 0.875em; font-weight: 700; background: transparent; color: var(--pall-text); }
-    .play-all-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
-    .loop-all-btn.looping { background: var(--pall-active-bg); color: var(--pall-active-text); }
     @media (hover: hover) {
-      .play-all-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); }
       .lesson-btn:hover:not(.active) { background: #475569; }
     }
     /* Controls dropdown (font + theme) */
@@ -692,6 +696,8 @@ function playReg(id) { playFiles(REG[id]); }
 function syncStopFab() {
   const fab = document.getElementById('stop-fab');
   if (fab) fab.classList.toggle('visible', playing);
+  const bar = document.getElementById('stop-bar-btn');
+  if (bar) bar.classList.toggle('visible', playing);
 }
 
 function syncLoopBtn() {
@@ -760,11 +766,15 @@ function render() {
   html += `<div class="lesson-header"><div class="lesson-title">${lesson.title}</div></div>`;
 
   // Section nav
-  html += '<div class="section-nav">';
+  html += '<div class="section-nav"><div class="section-tabs">';
   lesson.sections.forEach((s, i) => {
     html += `<button class="section-btn${i===activeSection?' active':''}" onclick="setSection(${i})">${s.label}</button>`;
   });
-  html += '</div>';
+  html += '</div><div class="section-actions">';
+  html += `<button class="bar-btn" onclick="playReg('a_${activeLesson}_${activeSection}')">▶ Play All</button>`;
+  html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
+  html += `<button class="bar-btn" id="stop-bar-btn" onclick="stop()">■ Stop</button>`;
+  html += '</div></div>';
 
   const sec = lesson.sections[activeSection];
   html += '<div class="section-content">';
@@ -796,8 +806,6 @@ function render() {
     html += `</div>`;
   });
 
-  html += `<div class="play-all-wrap"><button class="play-all-btn" onclick="playReg('${allKey}')">▶ Play All</button></div>`;
-  html += `<div class="play-all-wrap"><button class="play-all-btn loop-all-btn" id="loop-all-btn" onclick="toggleLoop('${allKey}')">↻ Loop All</button></div>`;
   html += '</div>';
 
   app.innerHTML = html;
