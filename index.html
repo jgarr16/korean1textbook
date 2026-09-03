@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-F8056ZN67Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-F8056ZN67Y');
+</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Korean 1 Textbook</title>
@@ -56,19 +65,27 @@
     .section-tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; }
     .section-tabs::-webkit-scrollbar { display: none; }
     .section-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .speed-dropdown { position: relative; flex-shrink: 0; }
+    .speed-dropdown summary { list-style: none; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 12px; min-height: 36px; border: 1px solid var(--pall-border); border-radius: 20px; background: transparent; color: var(--pall-text); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
+    .speed-dropdown summary::-webkit-details-marker { display: none; }
+    .speed-dropdown[open] summary { background: var(--pall-active-bg); color: var(--pall-active-text); }
+    .speed-dropdown-arrow { font-size: 10px; line-height: 1; opacity: 0.7; }
+    .speed-dropdown[open] .speed-dropdown-arrow { display: inline-block; transform: rotate(180deg); }
+    .speed-dropdown-panel { position: absolute; left: 0; top: 100%; margin-top: 6px; z-index: 25; min-width: 100%; padding: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 8px 22px rgba(0,0,0,0.18); }
+    .speed-dropdown-panel button { display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; border-radius: 8px; background: transparent; color: var(--fg); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .speed-dropdown-panel button.active { background: var(--pall-active-bg); color: var(--pall-active-text); }
     @media (max-width: 600px) {
       .section-nav { flex-wrap: wrap; row-gap: 8px; }
       .section-tabs { flex: 1 0 100%; }
-      .section-actions { flex: 1 0 100%; }
+      .section-actions { flex: 1 0 100%; flex-wrap: wrap; }
       .section-actions .bar-btn { flex: 1; padding: 8px 6px; text-align: center; }
     }
     .bar-btn { padding: 6px 12px; border: 1px solid var(--pall-border); border-radius: 20px; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; background: transparent; color: var(--pall-text); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+    #play-all-btn, #loop-all-btn { min-width: 7.25em; }
     .bar-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
-    .bar-btn.looping { background: var(--pall-active-bg); color: var(--pall-active-text); }
-    #stop-bar-btn { display: none; border-color: #dc2626; background: #dc2626; color: #fff; }
-    #stop-bar-btn.visible { display: inline-block; }
-    #stop-bar-btn:active { background: #b91c1c; border-color: #b91c1c; }
-    @media (hover: hover) { .bar-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); } #stop-bar-btn:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; } }
+    .bar-btn.stopping { border-color: #dc2626; background: #dc2626; color: #fff; }
+    .bar-btn.stopping:active { background: #b91c1c; border-color: #b91c1c; }
+    @media (hover: hover) { .bar-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); } .bar-btn.stopping:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; } }
     .section-btn { padding: 6px 14px; border: 1px solid var(--sbtn-border); border-radius: 20px; cursor: pointer; font-size: 13px; background: var(--sbtn-bg); color: var(--sbtn-text); white-space: nowrap; }
     .section-btn.active { background: var(--sbtn-active-bg); color: var(--sbtn-active-text); border-color: var(--sbtn-active-border); }
     .section-content { padding: 14px 16px 32px; }
@@ -80,6 +97,8 @@
     .speaker-name { font-weight: 700; font-size: 0.9375em; display: flex; align-items: center; gap: 8px; }
     .speaker-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .play-turn-btn { padding: 7px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8125em; font-weight: 600; background: transparent; min-height: 38px; min-width: 120px; text-align: center; }
+    .play-turn-btn.stopping { background: #dc2626; border-color: #dc2626 !important; color: #fff !important; }
+    .play-turn-btn.stopping:active { background: #b91c1c; border-color: #b91c1c !important; }
     .line-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; }
     .line-row + .line-row { border-top: 1px solid var(--sep); }
     .line-text { font-size: 1.0625em; flex: 1; line-height: 1.4; }
@@ -115,14 +134,10 @@
     .ctrl-row button:active, .ctrl-row button.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
     .ctrl-row button:disabled { opacity: 0.35; cursor: not-allowed; }
     .ctrl-label { font-size: 11px; font-weight: 500; color: #94a3b8; margin-right: 2px; user-select: none; min-width: 36px; text-align: right; }
-    #stop-fab { position: fixed; right: 16px; bottom: 20px; z-index: 50; display: none; align-items: center; gap: 6px; padding: 13px 22px; border: none; border-radius: 26px; font: inherit; font-size: 15px; font-weight: 700; color: #fff; background: #dc2626; box-shadow: 0 4px 14px rgba(0,0,0,0.35); cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    #stop-fab.visible { display: flex; }
-    #stop-fab:active { background: #b91c1c; }
   </style>
 </head>
 <body>
 <div id="app"></div>
-<button id="stop-fab" onclick="stop()">■ Stop</button>
 <div id="def-bubble" role="dialog" aria-live="polite"></div>
 <script>
 const LESSONS = [
@@ -976,6 +991,8 @@ function bindLookups() {
 document.addEventListener('click', ev => {
   const bubble = document.getElementById('def-bubble');
   if (bubble && bubble.classList.contains('visible') && !bubble.contains(ev.target)) hideDefBubble();
+  const speed = document.getElementById('speed-dropdown');
+  if (speed && speed.open && !speed.contains(ev.target)) speed.removeAttribute('open');
 });
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape') hideDefBubble(); });
 window.addEventListener('scroll', hideDefBubble, true);
@@ -1004,6 +1021,9 @@ const MERGE_GAP = 500;  // pause between clips inside one merged row
 const LOOP_GAP = 3000;
 const REG = {};
 
+let playOrigin = null; // 'all' | 'loop' | 'turn' | 'line'
+let playTurnKey = null;
+
 function later(ms, token) {
   clearTimeout(pendingTimer);
   pendingTimer = setTimeout(() => { if (token === playToken) playNext(); }, ms);
@@ -1018,17 +1038,66 @@ function stop() {
   loopSource = null;
   loopKey = null;
   playing = false;
+  playOrigin = null;
+  playTurnKey = null;
   syncLoopBtn();
-  syncStopFab();
+  syncPlayAllBtn();
+  syncTurnBtns();
 }
 
 // Single reusable element: on iOS/Android only an element unlocked by a user
 // gesture plays without delay, so we keep one and swap its src.
+const SPEED_KEY = 'koreanPlayRate';
+const SPEED_RATES = [0.5, 0.75, 1, 1.25, 1.5];
+
+function getPlayRate() {
+  try {
+    const v = parseFloat(localStorage.getItem(SPEED_KEY));
+    if (SPEED_RATES.indexOf(v) !== -1) return v;
+    if (v === 1.45) return 1.5;
+  } catch (e) {}
+  return 1;
+}
+
+function setPlayRate(r) {
+  r = Number(r);
+  if (SPEED_RATES.indexOf(r) === -1) r = 1;
+  try { localStorage.setItem(SPEED_KEY, String(r)); } catch (e) {}
+  if (currentAudio) currentAudio.playbackRate = r;
+  syncSpeedMenu();
+  const dd = document.getElementById('speed-dropdown');
+  if (dd) dd.removeAttribute('open');
+}
+
+function applyPlayRate(a) {
+  if (a) a.playbackRate = getPlayRate();
+}
+
+function syncSpeedMenu() {
+  const rate = getPlayRate();
+  document.querySelectorAll('#speed-dropdown-panel [data-rate]').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.getAttribute('data-rate')) === rate);
+  });
+}
+
+function bindSpeedMenu() {
+  const panel = document.getElementById('speed-dropdown-panel');
+  if (!panel) return;
+  panel.querySelectorAll('[data-rate]').forEach(btn => {
+    btn.onclick = function(ev) {
+      ev.preventDefault();
+      setPlayRate(btn.getAttribute('data-rate'));
+    };
+  });
+  syncSpeedMenu();
+}
+
 function getPlayer() {
   if (!currentAudio) {
     currentAudio = new Audio();
     currentAudio.preload = 'auto';
   }
+  applyPlayRate(currentAudio);
   return currentAudio;
 }
 
@@ -1065,7 +1134,7 @@ async function prefetchSection(paths) {
 function playNext() {
   const token = playToken;
   if (!playQueue.length) {
-    if (!loopSource) { playing = false; syncStopFab(); return; }
+    if (!loopSource) { playing = false; playOrigin = null; playTurnKey = null; syncPlayAllBtn(); syncTurnBtns(); return; }
     playQueue = [...loopSource];
     later(LOOP_GAP - LINE_GAP, token);
     return;
@@ -1075,7 +1144,8 @@ function playNext() {
   a.onended = () => later(item.gap, token);
   a.onerror = () => later(100, token);
   a.src = srcFor(item.src);
-  a.play().catch(() => later(100, token));
+  applyPlayRate(a);
+  a.play().then(() => applyPlayRate(a)).catch(() => later(100, token));
 }
 
 // Flatten lines into playback items; clips inside a merged row get the short gap.
@@ -1090,34 +1160,60 @@ function entriesFor(dir, lines) {
   return out;
 }
 
-function playFiles(paths) {
+function playFiles(paths, origin) {
   stop();
+  playOrigin = origin || 'line';
   playQueue = [...paths];
   playing = true;
-  syncStopFab();
+  syncPlayAllBtn();
+  syncTurnBtns();
   playNext();
 }
 
-function playReg(id) { playFiles(REG[id]); }
+function playReg(id) {
+  playFiles(REG[id], 'line');
+}
 
-function syncStopFab() {
-  const fab = document.getElementById('stop-fab');
-  if (fab) fab.classList.toggle('visible', playing);
-  const bar = document.getElementById('stop-bar-btn');
-  if (bar) bar.classList.toggle('visible', playing);
+function togglePlayAll() {
+  const id = `a_${activeLesson}_${activeSection}`;
+  if (playing && playOrigin === 'all') { stop(); return; }
+  playFiles(REG[id], 'all');
+}
+
+function togglePlayTurn(id) {
+  if (playing && playOrigin === 'turn' && playTurnKey === id) { stop(); return; }
+  playFiles(REG[id], 'turn');
+  playTurnKey = id;
+  syncTurnBtns();
+}
+
+function syncPlayAllBtn() {
+  const btn = document.getElementById('play-all-btn');
+  if (!btn) return;
+  const on = playing && playOrigin === 'all';
+  btn.classList.toggle('stopping', on);
+  btn.textContent = on ? '■ Stop' : '▶ Play All';
+}
+
+function syncTurnBtns() {
+  document.querySelectorAll('.play-turn-btn').forEach(btn => {
+    const on = playing && playOrigin === 'turn' && btn.getAttribute('data-turn') === playTurnKey;
+    btn.classList.toggle('stopping', on);
+    btn.textContent = on ? '■ Stop' : '▶ Play Turn';
+  });
 }
 
 function syncLoopBtn() {
   const btn = document.getElementById('loop-all-btn');
   if (!btn) return;
   const on = !!loopKey;
-  btn.classList.toggle('looping', on);
-  btn.textContent = on ? '■ Stop Loop' : '↻ Loop All';
+  btn.classList.toggle('stopping', on);
+  btn.textContent = on ? '■ Stop' : '↻ Loop All';
 }
 
 function toggleLoop(id) {
   if (loopKey === id) { stop(); return; }
-  playFiles(REG[id]);
+  playFiles(REG[id], 'loop');
   loopSource = [...REG[id]];
   loopKey = id;
   syncLoopBtn();
@@ -1178,9 +1274,9 @@ function render() {
     html += `<button class="section-btn${i===activeSection?' active':''}" onclick="setSection(${i})">${s.label}</button>`;
   });
   html += '</div><div class="section-actions">';
-  html += `<button class="bar-btn" onclick="playReg('a_${activeLesson}_${activeSection}')">▶ Play All</button>`;
+  html += `<details class="speed-dropdown" id="speed-dropdown"><summary>Speed <span class="speed-dropdown-arrow">▾</span></summary><div class="speed-dropdown-panel" id="speed-dropdown-panel"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button><button type="button" data-rate="1.5">1.5×</button></div></details>`;
+  html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
-  html += `<button class="bar-btn" id="stop-bar-btn" onclick="stop()">■ Stop</button>`;
   html += '</div></div>';
 
   const sec = lesson.sections[activeSection];
@@ -1199,7 +1295,7 @@ function render() {
     html += `<div class="speaker-block">`;
     html += `<div class="speaker-header">`;
     html += `<div class="speaker-name"><span class="speaker-dot" style="background:${color}"></span><span style="color:${color}">${block.speaker}</span></div>`;
-    html += `<button class="play-turn-btn" style="color:${color};border-color:${color}" onclick="playReg('${turnKey}')">▶ Play Turn</button>`;
+    html += `<button class="play-turn-btn" data-turn="${turnKey}" style="color:${color};border-color:${color}" onclick="togglePlayTurn('${turnKey}')">▶ Play Turn</button>`;
     html += `</div>`;
 
     block.lines.forEach((line, li) => {
@@ -1220,8 +1316,10 @@ function render() {
   app.innerHTML = html;
   hideDefBubble();
   bindLookups();
+  bindSpeedMenu();
   syncLoopBtn();
-  syncStopFab();
+  syncPlayAllBtn();
+  syncTurnBtns();
   prefetchSection(REG[allKey].map(e => e.src));
 }
 
