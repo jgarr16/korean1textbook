@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-F8056ZN67Y"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-F8056ZN67Y');
+  (function(){
+    function load(){ var s=document.createElement('script'); s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id=G-F8056ZN67Y'; document.head.appendChild(s); }
+    if('requestIdleCallback' in window) requestIdleCallback(load,{timeout:4000});
+    else window.addEventListener('load',function(){ setTimeout(load,1500); });
+  }());
 </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Korean 1 Textbook audio player - Lessons 1-7">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <title>Korean 1 Textbook</title>
   <script>
     (function(){
@@ -1009,7 +1014,8 @@ const COLORS = {
 
 let currentAudio = null;
 let playQueue = [];
-const BLOBS = new Map();   // path -> object URL (current section only)
+const BLOBS = new Map();
+const BLOB_MAX = 40;
 let prefetchToken = 0;
 let loopSource = null;
 let loopKey = null;
@@ -1017,11 +1023,11 @@ let playToken = 0;
 let playing = false;
 let pendingTimer = null;
 const LINE_GAP = 400;
-const MERGE_GAP = 500;  // pause between clips inside one merged row
+const MERGE_GAP = 500;
 const LOOP_GAP = 3000;
 const REG = {};
 
-let playOrigin = null; // 'all' | 'loop' | 'turn' | 'line'
+let playOrigin = null;
 let playTurnKey = null;
 
 function later(ms, token) {
@@ -1045,8 +1051,6 @@ function stop() {
   syncTurnBtns();
 }
 
-// Single reusable element: on iOS/Android only an element unlocked by a user
-// gesture plays without delay, so we keep one and swap its src.
 const SPEED_KEY = 'koreanPlayRate';
 const SPEED_RATES = [0.5, 0.75, 1, 1.25, 1.5];
 
@@ -1095,7 +1099,7 @@ function bindSpeedMenu() {
 function getPlayer() {
   if (!currentAudio) {
     currentAudio = new Audio();
-    currentAudio.preload = 'auto';
+    currentAudio.preload = 'none';
   }
   applyPlayRate(currentAudio);
   return currentAudio;
@@ -1104,17 +1108,33 @@ function getPlayer() {
 function srcFor(path) { return BLOBS.get(path) || path; }
 
 function clearBlobs() {
-  for (const url of BLOBS.values()) URL.revokeObjectURL(url);
+  for (const url of BLOBS.values()) { try { URL.revokeObjectURL(url); } catch(e){} }
   BLOBS.clear();
 }
 
-// Pull every clip for the active section into memory so playback between
-// lines is instant instead of a network round-trip per file.
+function shouldDeferPrefetch() {
+  try {
+    const c = navigator.connection || {};
+    if (c.saveData) return true;
+    if (String(c.effectiveType || '').indexOf('2g') !== -1) return true;
+  } catch(e){}
+  return false;
+}
+
+function storeBlob(path, blob) {
+  if (BLOBS.has(path)) return;
+  if (BLOBS.size >= BLOB_MAX) {
+    const oldest = BLOBS.keys().next().value;
+    try { URL.revokeObjectURL(BLOBS.get(oldest)); } catch(e){}
+    BLOBS.delete(oldest);
+  }
+  try { BLOBS.set(path, URL.createObjectURL(blob)); } catch(e){}
+}
+
 async function prefetchSection(paths) {
   prefetchToken++;
   const token = prefetchToken;
-  clearBlobs();
-  const queue = [...new Set(paths)];
+  const queue = [...new Set(paths)].filter(p => !BLOBS.has(p));
   const worker = async () => {
     while (queue.length) {
       if (token !== prefetchToken) return;
@@ -1124,11 +1144,24 @@ async function prefetchSection(paths) {
         if (!res.ok) continue;
         const blob = await res.blob();
         if (token !== prefetchToken) return;
-        BLOBS.set(path, URL.createObjectURL(blob));
-      } catch (e) { /* fall back to the network path */ }
+        storeBlob(path, blob);
+      } catch (e) {}
     }
   };
-  await Promise.all([worker(), worker(), worker()]);
+  await Promise.all([worker(), worker()]);
+}
+
+function warmSection(allEntries) {
+  if (shouldDeferPrefetch()) return;
+  const first = allEntries.slice(0, 2).map(e => e.src);
+  const run = () => prefetchSection(first);
+  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 3000 });
+  else setTimeout(run, 1500);
+}
+
+function prefetchPath(path) {
+  if (!path || BLOBS.has(path) || shouldDeferPrefetch()) return;
+  fetch(path).then(r => r.ok ? r.blob() : null).then(b => { if (b) storeBlob(path, b); }).catch(() => {});
 }
 
 function playNext() {
@@ -1140,6 +1173,7 @@ function playNext() {
     return;
   }
   const item = playQueue.shift();
+  if (playQueue.length) prefetchPath(playQueue[0].src);
   const a = getPlayer();
   a.onended = () => later(item.gap, token);
   a.onerror = () => later(100, token);
@@ -1148,7 +1182,6 @@ function playNext() {
   a.play().then(() => applyPlayRate(a)).catch(() => later(100, token));
 }
 
-// Flatten lines into playback items; clips inside a merged row get the short gap.
 function entriesFor(dir, lines) {
   const out = [];
   for (const line of lines) {
@@ -1237,8 +1270,6 @@ let activeSection = 0;
 
 function render() {
   const app = document.getElementById('app');
-
-  // Lesson nav
   let html = '<div class="nav-wrapper"><nav class="lesson-nav">';
   LESSONS.forEach((l, i) => {
     html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">Lesson ${i+1}</button>`;
@@ -1264,11 +1295,8 @@ function render() {
     </div>
   </details>
   </div></div>`;
-
   const lesson = LESSONS[activeLesson];
   html += `<div class="lesson-header"><div class="lesson-title">${lesson.title}</div></div>`;
-
-  // Section nav
   html += '<div class="section-nav"><div class="section-tabs">';
   lesson.sections.forEach((s, i) => {
     html += `<button class="section-btn${i===activeSection?' active':''}" onclick="setSection(${i})">${s.label}</button>`;
@@ -1278,26 +1306,21 @@ function render() {
   html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
   html += '</div></div>';
-
   const sec = lesson.sections[activeSection];
   html += '<div class="section-content">';
   html += `<div class="section-header"><div class="section-label">${sec.label}</div><div class="section-title">${sec.title}</div></div>`;
-
   const blocks = buildBlocks(sec.lines);
   const allKey = `a_${activeLesson}_${activeSection}`;
   REG[allKey] = entriesFor(sec.dir, sec.lines);
-
   blocks.forEach((block, bi) => {
     const color = COLORS[block.speaker] || '#64748b';
     const turnKey = `t_${activeLesson}_${activeSection}_${bi}`;
     REG[turnKey] = entriesFor(sec.dir, block.lines);
-
     html += `<div class="speaker-block">`;
     html += `<div class="speaker-header">`;
     html += `<div class="speaker-name"><span class="speaker-dot" style="background:${color}"></span><span style="color:${color}">${block.speaker}</span></div>`;
     html += `<button class="play-turn-btn" data-turn="${turnKey}" style="color:${color};border-color:${color}" onclick="togglePlayTurn('${turnKey}')">▶ Play Turn</button>`;
     html += `</div>`;
-
     block.lines.forEach((line, li) => {
       const lineKey = `l_${activeLesson}_${activeSection}_${bi}_${li}`;
       REG[lineKey] = entriesFor(sec.dir, [line]);
@@ -1310,9 +1333,7 @@ function render() {
     });
     html += `</div>`;
   });
-
   html += '</div>';
-
   app.innerHTML = html;
   hideDefBubble();
   bindLookups();
@@ -1320,7 +1341,7 @@ function render() {
   syncLoopBtn();
   syncPlayAllBtn();
   syncTurnBtns();
-  prefetchSection(REG[allKey].map(e => e.src));
+  warmSection(REG[allKey]);
 }
 
 function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); controlsInit(); }
@@ -1329,7 +1350,6 @@ function setSection(i) { activeSection = i; stop(); render(); controlsInit(); }
 render();
 
 (function(){
-  // Font
   var FK="koreanFontScale", FDEF=1, FMIN=0.8, FMAX=1.8, FSTEP=0.1;
   function frd(x){ return Math.round(x*100)/100; }
   function fget(){ var v=parseFloat(localStorage.getItem(FK)); return isNaN(v)?FDEF:frd(Math.min(FMAX,Math.max(FMIN,v))); }
@@ -1344,8 +1364,6 @@ render();
     if(sm) sm.disabled=s<=FMIN+0.001;
     if(lg) lg.disabled=s>=FMAX-0.001;
   }
-
-  // Theme
   var TK="koreanTheme";
   function tget(){ return localStorage.getItem(TK)||"system"; }
   function tapply(t){
@@ -1358,9 +1376,7 @@ render();
       if(b){ b.classList.toggle("active", x===t); }
     });
   }
-
   function close(){ var d=document.getElementById("font-dropdown"); if(d) d.removeAttribute("open"); }
-
   window.controlsInit = function(){
     fapply(fget());
     tapply(tget());
