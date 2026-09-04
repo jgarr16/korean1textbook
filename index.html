@@ -67,7 +67,7 @@
       }
     }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--fg); font-size: calc(16px * var(--font-scale)); }
-    .nav-wrapper { display: flex; align-items: center; background: #1e293b; position: sticky; top: 0; z-index: 30; }
+    .nav-wrapper { display: flex; align-items: center; background: #1e293b; position: sticky; top: 0; z-index: 30; padding-top: 0px; padding-top: constant(safe-area-inset-top, 0px); padding-top: env(safe-area-inset-top, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
     .lesson-nav { display: flex; gap: 4px; padding: 10px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .lesson-nav::-webkit-scrollbar { display: none; }
     .lesson-prefix { color: #e2e8f0; font-size: 14px; font-weight: 700; padding-left: 12px; white-space: nowrap; }
@@ -75,7 +75,7 @@
     .search-btn { display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 44px; padding: 5px 10px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; font-size: 24px; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     #global-stop, #global-pause { display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 44px; padding: 5px 12px; border: 1px solid #dc2626; border-radius: 8px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 700; line-height: 1; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
     #global-stop[hidden], #global-pause[hidden] { display: none; }
-    #search-bar { position: fixed; top: 56px; left: 0; right: 0; z-index: 29; background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
+    #search-bar { position: fixed; top: 56px; top: calc(56px + constant(safe-area-inset-top, 0px)); top: calc(56px + env(safe-area-inset-top, 0px)); left: 0; right: 0; z-index: 29; background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
     #search-bar[hidden] { display: none; }
     .search-row { display: flex; gap: 8px; align-items: center; }
     #search-input { flex: 1; min-width: 0; padding: 10px 12px; min-height: 40px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 16px; background: var(--card); color: var(--fg); }
@@ -86,11 +86,11 @@
     .search-empty { color: var(--muted); font-size: 0.875em; padding: 6px 2px; }
     .lesson-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; background: #334155; color: #94a3b8; white-space: nowrap; }
     .lesson-btn.active { background: #3b82f6; color: #fff; }
-    .lesson-header { padding: 18px 16px 6px; }
+    .lesson-header { padding: 18px 16px 6px; padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); }
     .lesson-title { font-size: 1.25em; font-weight: 700; }
     .resume-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 16px 0; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; font-size: 0.875em; }
     .resume-bar button { padding: 6px 12px; border-radius: 20px; border: 1px solid var(--pall-border); background: transparent; color: var(--pall-text); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-    .section-nav { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--snav-bg); border-bottom: 1px solid var(--border); }
+    .section-nav { display: flex; align-items: center; gap: 10px; padding: 10px 16px; padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); background: var(--snav-bg); border-bottom: 1px solid var(--border); }
     .section-tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; }
     .section-tabs::-webkit-scrollbar { display: none; }
     .section-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -118,7 +118,7 @@
     @media (hover: hover) { .bar-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); } .bar-btn.stopping:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; } }
     .section-btn { padding: 6px 14px; border: 1px solid var(--sbtn-border); border-radius: 20px; cursor: pointer; font-size: 13px; background: var(--sbtn-bg); color: var(--sbtn-text); white-space: nowrap; }
     .section-btn.active { background: var(--sbtn-active-bg); color: var(--sbtn-active-text); border-color: var(--sbtn-active-border); }
-    .section-content { padding: 14px 16px 32px; }
+    .section-content { padding: 14px 16px 32px; padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)); }
     .section-header { margin-bottom: 16px; }
     .section-label { font-size: 0.7em; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; }
     .section-title { font-size: 1.125em; font-weight: 700; margin-top: 3px; }
@@ -1206,12 +1206,23 @@ function updateHash() {
   try { history.replaceState(null, '', hashFor(activeLesson, activeSection)); } catch(e){}
 }
 let searchOpen = false;
+function positionSearchBar() {
+  try {
+    const nav = document.querySelector('.nav-wrapper');
+    const bar = document.getElementById('search-bar');
+    if (!nav || !bar || bar.hasAttribute('hidden')) return;
+    bar.style.top = nav.getBoundingClientRect().height + 'px';
+  } catch(e){}
+}
+window.addEventListener('resize', () => { if (searchOpen) positionSearchBar(); });
+window.addEventListener('orientationchange', () => { if (searchOpen) setTimeout(positionSearchBar, 100); });
 function toggleSearch() {
   const bar = document.getElementById('search-bar');
   if (!bar) return;
   if (bar.hasAttribute('hidden')) {
     bar.removeAttribute('hidden');
     searchOpen = true;
+    positionSearchBar();
     const inp = document.getElementById('search-input');
     if (inp) { doSearch(inp.value || ''); inp.focus(); }
   } else {
@@ -1769,6 +1780,7 @@ function render() {
   syncABBtn();
   updateHash();
   try { controlsInit(); } catch(e){}
+  if (searchOpen) positionSearchBar();
   warmSection(REG[allKey]);
 }
 
