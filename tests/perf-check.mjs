@@ -102,6 +102,12 @@ test('follow-along highlight: line rows carry data-line and playback highlights 
   assert.ok(html.includes("block: 'center'"), 'highlight must scroll to center');
 });
 
+test('follow-along completion scrolls back to top and clears highlight', () => {
+  assert.ok(html.includes('finishedOrigin'), 'must track finished origin');
+  assert.ok(html.includes('clearHighlight()'), 'must clear highlight on completion');
+  assert.ok(html.includes('top: 0'), 'must scroll back to top on completion');
+});
+
 test('lesson data intact: 7 lessons x 3 sections', () => {
   const lessons = (html.match(/title: "Lesson \d+:/g) || []).length;
   assert.equal(lessons, 7);

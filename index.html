@@ -1409,7 +1409,15 @@ function playNext() {
     return;
   }
   if (!playQueue.length) {
-    if (!loopSource) { playing = false; playOrigin = null; playTurnKey = null; syncPlayAllBtn(); syncTurnBtns(); return; }
+    if (!loopSource) {
+      const finishedOrigin = playOrigin;
+      playing = false; playOrigin = null; playTurnKey = null; syncPlayAllBtn(); syncTurnBtns();
+      try { clearHighlight(); } catch(e){}
+      if (finishedOrigin === 'all') {
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){ try { window.scrollTo(0, 0); } catch(e2){} }
+      }
+      return;
+    }
     playQueue = [...loopSource];
     later(LOOP_GAP - LINE_GAP, token);
     return;
