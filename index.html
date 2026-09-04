@@ -1106,7 +1106,82 @@ function resumeSaved() {
   activeSection = p.section;
   stop();
   render();
-  controlsInit();
+}
+function copyLessonLink() {
+  try {
+    updateHash();
+    const url = location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).catch(() => {});
+    else {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+  } catch(e){}
+}
+function openAbout() {
+  const o = document.getElementById('about-overlay');
+  if (o) o.removeAttribute('hidden');
+  const d = document.getElementById('font-dropdown');
+  if (d) d.removeAttribute('open');
+}
+function closeAbout() {
+  const o = document.getElementById('about-overlay');
+  if (o) o.setAttribute('hidden', '');
+}
+
+// Display controls: font scale + theme. Defined before render so render can re-bind after every innerHTML rebuild.
+var FK="koreanFontScale", FDEF=1, FMIN=0.8, FMAX=1.8, FSTEP=0.1;
+function frd(x){ return Math.round(x*100)/100; }
+function fget(){ try { var v=parseFloat(localStorage.getItem(FK)); if(isNaN(v)) return FDEF; return frd(Math.min(FMAX,Math.max(FMIN,v))); } catch(e){ return FDEF; } }
+function fapply(s){
+  s=frd(Math.min(FMAX,Math.max(FMIN,s)));
+  document.documentElement.style.setProperty("--font-scale",String(s));
+  try{ localStorage.setItem(FK,String(s)); }catch(e){}
+  var pct=document.getElementById("font-pct");
+  var sm=document.getElementById("font-smaller");
+  var lg=document.getElementById("font-larger");
+  if(pct) pct.textContent=Math.round(s*100)+"%";
+  if(sm) sm.disabled=s<=FMIN+0.001;
+  if(lg) lg.disabled=s>=FMAX-0.001;
+}
+var TK="koreanTheme";
+function tget(){ try { return localStorage.getItem(TK)||"system"; } catch(e){ return "system"; } }
+function tapply(t){
+  try{ localStorage.setItem(TK,t); }catch(e){}
+  if(t==="dark") document.documentElement.setAttribute("data-theme","dark");
+  else if(t==="light") document.documentElement.setAttribute("data-theme","light");
+  else document.documentElement.removeAttribute("data-theme");
+  ["light","system","dark"].forEach(function(x){
+    var b=document.getElementById("theme-"+x);
+    if(b) b.classList.toggle("active", x===t);
+  });
+}
+function controlsInit(){
+  try{ fapply(fget()); }catch(e){}
+  try{ tapply(tget()); }catch(e){}
+  var sm=document.getElementById("font-smaller");
+  var rs=document.getElementById("font-reset");
+  var lg=document.getElementById("font-larger");
+  if(sm) sm.onclick=function(e){ e.preventDefault(); e.stopPropagation(); fapply(fget()-FSTEP); };
+  if(rs) rs.onclick=function(e){ e.preventDefault(); e.stopPropagation(); fapply(FDEF); };
+  if(lg) lg.onclick=function(e){ e.preventDefault(); e.stopPropagation(); fapply(fget()+FSTEP); };
+  ["light","system","dark"].forEach(function(x){
+    var b=document.getElementById("theme-"+x);
+    if(b) b.onclick=function(e){ e.preventDefault(); e.stopPropagation(); tapply(x); };
+  });
+  var cb=document.getElementById("copy-link");
+  if(cb) cb.onclick=function(e){ e.preventDefault(); e.stopPropagation(); copyLessonLink(); };
+  var ab=document.getElementById("about-link");
+  if(ab) ab.onclick=function(e){ e.preventDefault(); e.stopPropagation(); openAbout(); };
+  var si=document.getElementById("search-input");
+  if(si && !si.dataset.bound){
+    si.dataset.bound="1";
+    si.addEventListener("input", function(){ doSearch(si.value); });
+  }
 }
 
 // #3 minimal: sticky lesson bar (CSS) + expandable search icon + invisible deep-links.
@@ -1179,35 +1254,9 @@ function jumpToResult(l, s) {
   stop();
   savePlace();
   render();
-  controlsInit();
   updateHash();
   closeSearch();
   try { window.scrollTo(0, 0); } catch(e){}
-}
-function copyLessonLink() {
-  try {
-    updateHash();
-    const url = location.href;
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).catch(() => {});
-    else {
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-  } catch(e){}
-}
-function openAbout() {
-  const o = document.getElementById('about-overlay');
-  if (o) o.removeAttribute('hidden');
-  const d = document.getElementById('font-dropdown');
-  if (d) d.removeAttribute('open');
-}
-function closeAbout() {
-  const o = document.getElementById('about-overlay');
-  if (o) o.setAttribute('hidden', '');
 }
 window.addEventListener('hashchange', () => {
   const p = parseHash();
@@ -1217,7 +1266,6 @@ window.addEventListener('hashchange', () => {
     stop();
     savePlace();
     render();
-    controlsInit();
   }
 });
 
@@ -1659,53 +1707,15 @@ function render() {
   syncPlayAllBtn();
   syncTurnBtns();
   syncABBtn();
-  const cb = document.getElementById('copy-link');
-  if (cb) cb.onclick = function(e){ e.preventDefault(); e.stopPropagation(); copyLessonLink(); };
-  const ab = document.getElementById('about-link');
-  if (ab) ab.onclick = function(e){ e.preventDefault(); e.stopPropagation(); openAbout(); };
   updateHash();
+  try { controlsInit(); } catch(e){}
   warmSection(REG[allKey]);
 }
 
-function setLesson(i) { activeLesson = i; activeSection = 0; stop(); savePlace(); render(); controlsInit(); }
-function setSection(i) { activeSection = i; stop(); savePlace(); render(); controlsInit(); }
+function setLesson(i) { activeLesson = i; activeSection = 0; stop(); savePlace(); render(); }
+function setSection(i) { activeSection = i; stop(); savePlace(); render(); }
 
 render();
-
-(function(){
-  var FK="koreanFontScale", FDEF=1, FMIN=0.8, FMAX=1.8, FSTEP=0.1;
-  function frd(x){ return Math.round(x*100)/100; }
-  function fget(){ var v=parseFloat(localStorage.getItem(FK)); return isNaN(v)?FDEF:frd(Math.min(FMAX,Math.max(FMIN,v))); }
-  function fapply(s){
-    s=frd(Math.min(FMAX,Math.max(FMIN,s)));
-    document.documentElement.style.setProperty("--font-scale",String(s));
-    try{ localStorage.setItem(FK,String(s)); }catch(e){}
-    var pct=document.getElementById("font-pct");
-    var sm=document.getElementById("font-smaller");
-    var lg=document.getElementById("font-larger");
-    if(pct) pct.textContent=Math.round(s*100)+"%";
-    if(sm) sm.disabled=s<=FMIN+0.001;
-    if(lg) lg.disabled=s>=FMAX-0.001;
-  }
-  var TK="koreanTheme";
-  function tget(){ return localStorage.getItem(TK)||"system"; }
-  function tapply(t){
-    try{ localStorage.setItem(TK,t); }catch(e){}
-    if(t==="dark") document.documentElement.setAttribute("data-theme","dark");
-    else if(t==="light") document.documentElement.setAttribute("data-theme","light");
-    else document.documentElement.removeAttribute("data-theme");
-    ["light","system","dark"].forEach(function(x){
-      var b=document.getElementById("theme-"+x);
-      if(b) b.onclick=function(e){ e.preventDefault(); tapply(x); };
-    });
-    const si = document.getElementById('search-input');
-    if (si && !si.dataset.bound) {
-      si.dataset.bound = '1';
-      si.addEventListener('input', () => doSearch(si.value));
-    }
-  };
-  controlsInit();
-})();
 </script>
 </body>
 </html>

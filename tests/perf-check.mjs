@@ -132,6 +132,19 @@ test('search uses Hangul placeholder and no empty-state verbiage', () => {
   assert.ok(!html.includes('Type to search Korean or English'), 'empty-state verbiage must be removed');
 });
 
+test('display controls: font size and theme buttons are bound via controlsInit', () => {
+  assert.ok(html.includes('id="font-smaller"'), 'font-smaller required');
+  assert.ok(html.includes('id="font-reset"'), 'font-reset required');
+  assert.ok(html.includes('id="font-larger"'), 'font-larger required');
+  assert.ok(html.includes('id="theme-light"'), 'theme-light required');
+  assert.ok(html.includes('id="theme-system"'), 'theme-system required');
+  assert.ok(html.includes('id="theme-dark"'), 'theme-dark required');
+  assert.ok(html.includes('function fapply'), 'fapply required');
+  assert.ok(html.includes('function tapply'), 'tapply required');
+  assert.ok(html.includes('function controlsInit'), 'controlsInit required');
+  assert.ok(/function render\(\)[\s\S]*controlsInit\(\)/.test(html), 'render must call controlsInit so re-renders re-bind buttons');
+});
+
 test('lesson data intact: 7 lessons x 3 sections', () => {
   const lessons = (html.match(/title: "Lesson \d+:/g) || []).length;
   assert.equal(lessons, 7);
