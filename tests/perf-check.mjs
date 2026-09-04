@@ -123,7 +123,13 @@ test('mobile fullscreen, large search and gear icons, favicon and about popup', 
   assert.ok(html.includes('function openAbout'), 'openAbout required');
   assert.ok(html.includes('function closeAbout'), 'closeAbout required');
   assert.ok(html.includes('GarrigAI LLC'), 'credit text required');
-  assert.ok(html.includes('ACC Riverbat'), 'ACC credit required');
+  assert.ok(html.includes('Created by GarrigAI LLC as a personal study aid'), 'new about credit required');
+  assert.ok(html.includes('ACC Riverbed'), 'ACC Riverbed credit required');
+});
+
+test('search uses Hangul placeholder and no empty-state verbiage', () => {
+  assert.ok(html.includes('Search 한국어 or English'), 'Hangul placeholder required');
+  assert.ok(!html.includes('Type to search Korean or English'), 'empty-state verbiage must be removed');
 });
 
 test('lesson data intact: 7 lessons x 3 sections', () => {

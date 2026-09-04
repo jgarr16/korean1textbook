@@ -20,9 +20,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Korean Guide">
-  <link rel="icon" type="image/png" href="images/ga-speech-acc-transparent.png?v=2">
-  <link rel="shortcut icon" type="image/png" href="images/ga-speech-acc-transparent.png?v=2">
-  <link rel="apple-touch-icon" href="images/ga-speech-acc-transparent.png?v=2">
+  <link rel="icon" type="image/png" href="images/ga-speech-acc-transparent.png?v=3">
+  <link rel="shortcut icon" type="image/png" href="images/ga-speech-acc-transparent.png?v=3">
+  <link rel="apple-touch-icon" href="images/ga-speech-acc-transparent.png?v=3">
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
@@ -177,7 +177,7 @@
 <div id="app"></div>
 <div id="search-bar" hidden>
   <div class="search-row">
-    <input id="search-input" type="search" placeholder="Search Korean or English…" autocomplete="off" aria-label="Search lessons">
+    <input id="search-input" type="search" placeholder="Search 한국어 or English…" autocomplete="off" aria-label="Search lessons">
     <button type="button" class="search-close-btn" onclick="closeSearch()">Close</button>
   </div>
   <div id="search-results" aria-live="polite"></div>
@@ -186,10 +186,10 @@
 <div id="about-overlay" hidden>
   <div class="about-card" role="dialog" aria-modal="true" aria-label="About">
     <button type="button" class="about-close-x" onclick="closeAbout()" aria-label="Close">×</button>
-    <img src="images/ga-speech-acc-transparent.png?v=2" alt="App icon" class="about-icon" onerror="this.style.display='none';document.getElementById('about-icon-fallback').style.display='block';">
+    <img src="images/ga-speech-acc-transparent.png?v=3" alt="App icon" class="about-icon" onerror="this.style.display='none';document.getElementById('about-icon-fallback').style.display='block';">
     <div id="about-icon-fallback" style="display:none;font-size:64px;line-height:1;margin:0 auto 12px;">🇰🇷</div>
     <div class="about-title">Korean Language Study Guide</div>
-    <div class="about-text">Created as a personal study aid for ACC Riverbat staff and students by GarrigAI LLC.</div>
+    <div class="about-text">Created by GarrigAI LLC as a personal study aid for ACC Riverbed students and staff.</div>
     <button type="button" class="about-close-btn" onclick="closeAbout()">Close</button>
   </div>
 </div>
@@ -368,7 +368,7 @@ const LESSONS = [
           { speaker: "소피아", file: "segment_05.mp3", text: "집이 어디예요?", en: "Where is your home?" },
           { speaker: "스티브", file: "segment_06.mp3", text: "보스턴이에요.", en: "It's in Boston." },
           { speaker: "스티브", file: "segment_07.mp3", text: "아버지하고 어머니가 보스턴에 계세요.", en: "My father and mother are in Boston." },
-          { speaker: "스티브", file: "segment_08.mp3", text: "소피아 씨 부모님은 어디 계세요?", en: "Where are your parents, Sofia?" },
+          { speaker: "소피아", file: "segment_08.mp3", text: "소피아 씨 부모님은 어디 계세요?", en: "Where are your parents, Sofia?" },
           { speaker: "소피아", file: "segment_09.mp3", text: "홍콩에 계세요.", en: "They're in Hong Kong." },
           { speaker: "소피아", file: "segment_10.mp3", text: "오빠하고 동생도 홍콩에 있어요.", en: "My older brother and younger sibling are in Hong Kong too." },
           { speaker: "스티브", file: "segment_11.mp3", text: "오빠하고 동생도 대학생이에요?", en: "Are your older brother and younger sibling college students too?" },
@@ -1151,7 +1151,7 @@ function doSearch(q) {
   const res = document.getElementById('search-results');
   if (!res) return;
   q = String(q || '').trim().toLowerCase();
-  if (!q) { res.innerHTML = '<div class="search-empty">Type to search Korean or English across all 7 lessons.</div>'; return; }
+  if (!q) { res.innerHTML = ''; return; }
   const out = [];
   LESSONS.forEach((lesson, li) => {
     lesson.sections.forEach((sec, si) => {
