@@ -1044,10 +1044,13 @@ document.addEventListener('click', ev => {
   if (bubble && bubble.classList.contains('visible') && !bubble.contains(ev.target)) hideDefBubble();
   const speed = document.getElementById('speed-dropdown');
   if (speed && speed.open && !speed.contains(ev.target)) speed.removeAttribute('open');
+  const fontDd = document.getElementById('font-dropdown');
+  if (fontDd && fontDd.open && !fontDd.contains(ev.target)) fontDd.removeAttribute('open');
   const about = document.getElementById('about-overlay');
   if (about && !about.hasAttribute('hidden')) {
     const card = about.querySelector('.about-card');
-    if (card && !card.contains(ev.target)) closeAbout();
+    const opener = ev.target.closest ? ev.target.closest('#about-link') : null;
+    if (card && !card.contains(ev.target) && !opener) closeAbout();
   }
 });
 document.addEventListener('keydown', ev => {
@@ -1655,9 +1658,9 @@ function render() {
   syncTurnBtns();
   syncABBtn();
   const cb = document.getElementById('copy-link');
-  if (cb) cb.onclick = function(e){ e.preventDefault(); copyLessonLink(); };
+  if (cb) cb.onclick = function(e){ e.preventDefault(); e.stopPropagation(); copyLessonLink(); };
   const ab = document.getElementById('about-link');
-  if (ab) ab.onclick = function(e){ e.preventDefault(); openAbout(); };
+  if (ab) ab.onclick = function(e){ e.preventDefault(); e.stopPropagation(); openAbout(); };
   updateHash();
   warmSection(REG[allKey]);
 }
