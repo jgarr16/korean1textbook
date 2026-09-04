@@ -14,19 +14,19 @@
 </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="Korean 1 Textbook audio player - Lessons 1-7">
+  <meta name="description" content="Korean Language Study Guide audio player - Lessons 1-7">
   <meta name="theme-color" content="#1e293b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Korean 1">
-  <link rel="icon" type="image/png" href="icon.png?v=2">
-  <link rel="shortcut icon" type="image/png" href="icon.png?v=2">
-  <link rel="apple-touch-icon" href="icon.png?v=2">
+  <meta name="apple-mobile-web-app-title" content="Korean Guide">
+  <link rel="icon" type="image/png" href="images/ga-speech-acc-transparent.png?v=2">
+  <link rel="shortcut icon" type="image/png" href="images/ga-speech-acc-transparent.png?v=2">
+  <link rel="apple-touch-icon" href="images/ga-speech-acc-transparent.png?v=2">
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-  <title>Korean 1 Textbook</title>
+  <title>Korean Language Study Guide</title>
   <script>
     (function(){
       try {
@@ -166,7 +166,7 @@
     #about-overlay[hidden] { display: none; }
     #about-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.55); }
     .about-card { position: relative; max-width: 360px; width: 100%; padding: 24px 20px 20px; background: var(--card); color: var(--fg); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.3); text-align: center; }
-    .about-icon { width: 96px; height: 96px; border-radius: 20px; object-fit: cover; margin: 0 auto 12px; display: block; }
+    .about-icon { width: 180px; max-width: 80%; height: auto; border-radius: 20px; object-fit: contain; margin: 0 auto 12px; display: block; }
     .about-title { font-size: 1.125em; font-weight: 800; margin-bottom: 8px; }
     .about-text { font-size: 0.9375em; line-height: 1.5; color: var(--muted); }
     .about-close-x { position: absolute; top: 8px; right: 10px; border: none; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; padding: 6px; }
@@ -186,9 +186,9 @@
 <div id="about-overlay" hidden>
   <div class="about-card" role="dialog" aria-modal="true" aria-label="About">
     <button type="button" class="about-close-x" onclick="closeAbout()" aria-label="Close">×</button>
-    <img src="icon.png?v=2" alt="App icon" class="about-icon" onerror="this.style.display='none';document.getElementById('about-icon-fallback').style.display='block';">
+    <img src="images/ga-speech-acc-transparent.png?v=2" alt="App icon" class="about-icon" onerror="this.style.display='none';document.getElementById('about-icon-fallback').style.display='block';">
     <div id="about-icon-fallback" style="display:none;font-size:64px;line-height:1;margin:0 auto 12px;">🇰🇷</div>
-    <div class="about-title">Korean 1 Textbook</div>
+    <div class="about-title">Korean Language Study Guide</div>
     <div class="about-text">Created as a personal study aid for ACC Riverbat staff and students by GarrigAI LLC.</div>
     <button type="button" class="about-close-btn" onclick="closeAbout()">Close</button>
   </div>
@@ -401,7 +401,7 @@ const LESSONS = [
           { speaker: "리사", file: "segment_16.mp3", text: "사이가 아주 좋아요.", en: "We get along really well." },
           { speaker: "소피아", file: "segment_17.mp3", text: "이건 누구 방이에요?", en: "Whose room is this?" },
           { speaker: "리사", file: "segment_18.mp3", text: "제 방이에요.", en: "It's my room." },
-          { speaker: "소피아", file: "segment_19.mp3", text: "방이 참 예뻐요.", en: "The room is really pretty." },
+          { speaker: "리사", file: "segment_19.mp3", text: "방이 참 예뻐요.", en: "The room is really pretty." },
           { speaker: "리사", file: "segment_20.mp3", text: "고마워요.", en: "Thank you." }
         ]
       },

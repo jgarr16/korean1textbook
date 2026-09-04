@@ -110,7 +110,8 @@ test('follow-along completion scrolls back to top and clears highlight', () => {
 
 test('mobile fullscreen, large search and gear icons, favicon and about popup', () => {
   assert.ok(html.includes('rel="icon"'), 'favicon required');
-  assert.ok(html.includes('icon.png'), 'uploaded icon.png must be used');
+  assert.ok(html.includes('images/ga-speech-acc-transparent.png'), 'correct transparent image must be used');
+  assert.ok(html.includes('Korean Language Study Guide'), 'new guide title required');
   assert.ok(html.includes('rel="manifest"'), 'manifest required');
   assert.ok(html.includes('apple-mobile-web-app-capable'), 'iOS fullscreen meta required');
   assert.ok(html.includes('mobile-web-app-capable'), 'Android fullscreen meta required');
