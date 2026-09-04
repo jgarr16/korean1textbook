@@ -66,6 +66,8 @@
     .lesson-btn.active { background: #3b82f6; color: #fff; }
     .lesson-header { padding: 18px 16px 6px; }
     .lesson-title { font-size: 1.25em; font-weight: 700; }
+    .resume-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 16px 0; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; font-size: 0.875em; }
+    .resume-bar button { padding: 6px 12px; border-radius: 20px; border: 1px solid var(--pall-border); background: transparent; color: var(--pall-text); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
     .section-nav { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--snav-bg); border-bottom: 1px solid var(--border); }
     .section-tabs { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; }
     .section-tabs::-webkit-scrollbar { display: none; }
@@ -891,7 +893,6 @@ function lookupWord(raw) {
   const word = String(raw || '').replace(/[.?…,!]+$/g, '').trim();
   if (!word) return null;
   if (DICT[word]) return { word, lemma: word, gloss: DICT[word] };
-  // Longest leftover that is in the dictionary (drop one syllable at a time from the end).
   for (let i = 1; i < word.length; i++) {
     const stem = word.slice(0, -i);
     if (DICT[stem]) return { word, lemma: stem, gloss: DICT[stem] };
@@ -1026,9 +1027,63 @@ const LINE_GAP = 400;
 const MERGE_GAP = 500;
 const LOOP_GAP = 3000;
 const REG = {};
-
 let playOrigin = null;
 let playTurnKey = null;
+
+// #2 selected parts: remember place + study helpers (repeat/shuffle). No whole-lesson autoplay.
+const PLACE_KEY = 'koreanLastPlace.v1';
+const REPEAT_KEY = 'koreanRepeatTimes';
+const SHUFFLE_KEY = 'koreanShuffleAll';
+let repeatLineTimes = 1;
+let shuffleAll = false;
+try {
+  const r = parseInt(localStorage.getItem(REPEAT_KEY), 10);
+  if (r === 3) repeatLineTimes = 3;
+  if (localStorage.getItem(SHUFFLE_KEY) === '1') shuffleAll = true;
+} catch(e){}
+function savePlace() {
+  try { localStorage.setItem(PLACE_KEY, JSON.stringify({ lesson: activeLesson, section: activeSection, ts: Date.now() })); } catch(e){}
+}
+function loadPlace() {
+  try {
+    const p = JSON.parse(localStorage.getItem(PLACE_KEY));
+    if (p && Number.isInteger(p.lesson) && Number.isInteger(p.section) && LESSONS[p.lesson] && LESSONS[p.lesson].sections[p.section]) return p;
+  } catch(e){}
+  return null;
+}
+function toggleRepeat() {
+  repeatLineTimes = repeatLineTimes === 1 ? 3 : 1;
+  try { localStorage.setItem(REPEAT_KEY, String(repeatLineTimes)); } catch(e){}
+  syncStudyBtns();
+}
+function toggleShuffle() {
+  shuffleAll = !shuffleAll;
+  try { localStorage.setItem(SHUFFLE_KEY, shuffleAll ? '1' : '0'); } catch(e){}
+  syncStudyBtns();
+}
+function syncStudyBtns() {
+  const rb = document.getElementById('repeat-btn');
+  if (rb) rb.textContent = repeatLineTimes === 1 ? 'Repeat 1×' : 'Repeat 3×';
+  const sb = document.getElementById('shuffle-btn');
+  if (sb) sb.textContent = shuffleAll ? 'Shuffle On' : 'Shuffle Off';
+}
+function resumeSaved() {
+  const p = loadPlace();
+  if (!p) return;
+  activeLesson = p.lesson;
+  activeSection = p.section;
+  stop();
+  render();
+  controlsInit();
+}
+function shuffledEntriesFor(dir, lines) {
+  const arr = lines.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return entriesFor(dir, arr);
+}
 
 function later(ms, token) {
   clearTimeout(pendingTimer);
@@ -1131,10 +1186,6 @@ function storeBlob(path, blob) {
   try { BLOBS.set(path, URL.createObjectURL(blob)); } catch(e){}
 }
 
-// Happy medium: urgent first clips + idle background rest for gapless Play All / Loop All.
-// render() never blocks: warmSection() fetches first 2 immediately (idle callback),
-// then fills the rest of the current section in the background at low concurrency.
-// playNext() also calls prefetchPath(next) as just-in-time insurance.
 async function fetchWithToken(queue, token) {
   const worker = async () => {
     while (queue.length) {
@@ -1191,7 +1242,8 @@ function playNext() {
     return;
   }
   const item = playQueue.shift();
-  if (playQueue.length) prefetchPath(playQueue[0].src);
+  if (playQueue.length > 0) prefetchPath(playQueue[0].src);
+  if (playQueue.length > 1) prefetchPath(playQueue[1].src);
   const a = getPlayer();
   a.onended = () => later(item.gap, token);
   a.onerror = () => later(100, token);
@@ -1214,7 +1266,13 @@ function entriesFor(dir, lines) {
 function playFiles(paths, origin) {
   stop();
   playOrigin = origin || 'line';
-  playQueue = [...paths];
+  let list = [...paths];
+  if (origin === 'line' && repeatLineTimes > 1) {
+    const one = [...paths];
+    list = [];
+    for (let i = 0; i < repeatLineTimes; i++) list.push(...one);
+  }
+  playQueue = list;
   playing = true;
   syncPlayAllBtn();
   syncTurnBtns();
@@ -1222,17 +1280,25 @@ function playFiles(paths, origin) {
 }
 
 function playReg(id) {
+  savePlace();
   playFiles(REG[id], 'line');
 }
 
 function togglePlayAll() {
   const id = `a_${activeLesson}_${activeSection}`;
   if (playing && playOrigin === 'all') { stop(); return; }
-  playFiles(REG[id], 'all');
+  savePlace();
+  if (shuffleAll) {
+    const sec = LESSONS[activeLesson].sections[activeSection];
+    playFiles(shuffledEntriesFor(sec.dir, sec.lines), 'all');
+  } else {
+    playFiles(REG[id], 'all');
+  }
 }
 
 function togglePlayTurn(id) {
   if (playing && playOrigin === 'turn' && playTurnKey === id) { stop(); return; }
+  savePlace();
   playFiles(REG[id], 'turn');
   playTurnKey = id;
   syncTurnBtns();
@@ -1264,6 +1330,7 @@ function syncLoopBtn() {
 
 function toggleLoop(id) {
   if (loopKey === id) { stop(); return; }
+  savePlace();
   playFiles(REG[id], 'loop');
   loopSource = [...REG[id]];
   loopKey = id;
@@ -1285,6 +1352,10 @@ function buildBlocks(lines) {
 
 let activeLesson = 0;
 let activeSection = 0;
+try {
+  const p = loadPlace();
+  if (p) { activeLesson = p.lesson; activeSection = p.section; }
+} catch(e){}
 
 function render() {
   const app = document.getElementById('app');
@@ -1313,6 +1384,10 @@ function render() {
     </div>
   </details>
   </div></div>`;
+  const saved = loadPlace();
+  if (saved && (saved.lesson !== activeLesson || saved.section !== activeSection)) {
+    html += `<div class="resume-bar"><span>Last time: Lesson ${saved.lesson + 1} / ${escHtml(LESSONS[saved.lesson].sections[saved.section].label)}</span><button type="button" onclick="resumeSaved()">Resume</button></div>`;
+  }
   const lesson = LESSONS[activeLesson];
   html += `<div class="lesson-header"><div class="lesson-title">${lesson.title}</div></div>`;
   html += '<div class="section-nav"><div class="section-tabs">';
@@ -1321,6 +1396,8 @@ function render() {
   });
   html += '</div><div class="section-actions">';
   html += `<details class="speed-dropdown" id="speed-dropdown"><summary>Speed <span class="speed-dropdown-arrow">▾</span></summary><div class="speed-dropdown-panel" id="speed-dropdown-panel"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button><button type="button" data-rate="1.5">1.5×</button></div></details>`;
+  html += `<button class="bar-btn" id="repeat-btn" onclick="toggleRepeat()">Repeat 1×</button>`;
+  html += `<button class="bar-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle Off</button>`;
   html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
   html += '</div></div>';
@@ -1359,11 +1436,12 @@ function render() {
   syncLoopBtn();
   syncPlayAllBtn();
   syncTurnBtns();
+  syncStudyBtns();
   warmSection(REG[allKey]);
 }
 
-function setLesson(i) { activeLesson = i; activeSection = 0; stop(); render(); controlsInit(); }
-function setSection(i) { activeSection = i; stop(); render(); controlsInit(); }
+function setLesson(i) { activeLesson = i; activeSection = 0; stop(); savePlace(); render(); controlsInit(); }
+function setSection(i) { activeSection = i; stop(); savePlace(); render(); controlsInit(); }
 
 render();
 

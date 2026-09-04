@@ -1,5 +1,5 @@
-// Robust test capability for #1 perf + data sanity.
-// Run with: node --test tests/
+// Robust test capability for #1 perf + #2 selected parts + data sanity.
+// Run with: node --test tests/perf-check.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -30,6 +30,25 @@ test('happy medium: warm first clips then background rest, no blocking bulk fetc
   assert.ok(html.includes('shouldDeferPrefetch'), 'Save-Data respect required');
   assert.ok(html.includes('BLOB_MAX'), 'LRU cache limit required');
   assert.ok(html.includes('prefetchPath(playQueue[0].src)'), 'playNext must prefetch next clip');
+});
+
+test('#2 remember place: persists lesson section and offers resume', () => {
+  assert.ok(html.includes('koreanLastPlace'), 'place key required');
+  assert.ok(html.includes('function savePlace'), 'savePlace required');
+  assert.ok(html.includes('function loadPlace'), 'loadPlace required');
+  assert.ok(html.includes('function resumeSaved'), 'resumeSaved required');
+  assert.ok(html.includes('resume-bar'), 'resume bar UI required');
+  assert.ok(html.includes('Last time: Lesson'), 'resume bar text required');
+});
+
+test('#2 study helpers: repeat line and shuffle play-all, no whole-lesson autoplay', () => {
+  assert.ok(html.includes('repeatLineTimes'), 'repeat helper required');
+  assert.ok(html.includes('function toggleRepeat'), 'toggleRepeat required');
+  assert.ok(html.includes('function toggleShuffle'), 'toggleShuffle required');
+  assert.ok(html.includes('function shuffledEntriesFor'), 'shuffledEntriesFor required');
+  assert.ok(html.includes('id="repeat-btn"'), 'repeat button required');
+  assert.ok(html.includes('id="shuffle-btn"'), 'shuffle button required');
+  assert.ok(!html.includes('Play Lesson'), 'must not add whole-lesson autoplay');
 });
 
 test('lesson data intact: 7 lessons x 3 sections', () => {
