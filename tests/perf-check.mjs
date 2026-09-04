@@ -21,13 +21,15 @@ test('single Audio element with preload none', () => {
   assert.ok(!html.match(/<audio[\s>]/i), 'must not use many <audio> tags');
 });
 
-test('no eager bulk prefetch on render', () => {
-  assert.ok(html.includes('warmSection(REG[allKey])'), 'render must warm only first clips');
-  assert.ok(!html.includes('prefetchSection(REG[allKey]'), 'render must not bulk fetch all clips');
+test('happy medium: warm first clips then background rest, no blocking bulk fetch', () => {
+  assert.ok(html.includes('warmSection(REG[allKey])'), 'render must warm section without blocking');
   assert.ok(html.includes('function warmSection'), 'warmSection required');
-  assert.ok(html.includes('function prefetchPath'), 'lookahead prefetch required');
+  assert.ok(html.includes('function fetchWithToken'), 'cancellable background fetch required');
+  assert.ok(html.includes('function prefetchPath'), 'lookahead prefetch required for gapless Play All');
+  assert.ok(html.includes('requestIdleCallback(runRest'), 'rest of section must fill in background idle');
   assert.ok(html.includes('shouldDeferPrefetch'), 'Save-Data respect required');
   assert.ok(html.includes('BLOB_MAX'), 'LRU cache limit required');
+  assert.ok(html.includes('prefetchPath(playQueue[0].src)'), 'playNext must prefetch next clip');
 });
 
 test('lesson data intact: 7 lessons x 3 sections', () => {

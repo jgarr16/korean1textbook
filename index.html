@@ -1131,10 +1131,11 @@ function storeBlob(path, blob) {
   try { BLOBS.set(path, URL.createObjectURL(blob)); } catch(e){}
 }
 
-async function prefetchSection(paths) {
-  prefetchToken++;
-  const token = prefetchToken;
-  const queue = [...new Set(paths)].filter(p => !BLOBS.has(p));
+// Happy medium: urgent first clips + idle background rest for gapless Play All / Loop All.
+// render() never blocks: warmSection() fetches first 2 immediately (idle callback),
+// then fills the rest of the current section in the background at low concurrency.
+// playNext() also calls prefetchPath(next) as just-in-time insurance.
+async function fetchWithToken(queue, token) {
   const worker = async () => {
     while (queue.length) {
       if (token !== prefetchToken) return;
@@ -1146,17 +1147,34 @@ async function prefetchSection(paths) {
         if (token !== prefetchToken) return;
         storeBlob(path, blob);
       } catch (e) {}
+      await new Promise(function(r){ setTimeout(r, 0); });
     }
   };
   await Promise.all([worker(), worker()]);
 }
 
+async function prefetchSection(paths) {
+  const token = ++prefetchToken;
+  const queue = [...new Set(paths)].filter(p => !BLOBS.has(p));
+  return fetchWithToken(queue, token);
+}
+
 function warmSection(allEntries) {
   if (shouldDeferPrefetch()) return;
-  const first = allEntries.slice(0, 2).map(e => e.src);
-  const run = () => prefetchSection(first);
-  if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 3000 });
-  else setTimeout(run, 1500);
+  const all = [...new Set(allEntries.map(e => e.src))].filter(p => !BLOBS.has(p));
+  if (!all.length) return;
+  const first = all.slice(0, 2);
+  const rest = all.slice(2);
+  const token = ++prefetchToken;
+  fetchWithToken([...first], token).then(() => {
+    if (token !== prefetchToken || !rest.length) return;
+    const runRest = () => {
+      if (token !== prefetchToken) return;
+      fetchWithToken([...rest], token);
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(runRest, { timeout: 5000 });
+    else setTimeout(runRest, 2000);
+  });
 }
 
 function prefetchPath(path) {
