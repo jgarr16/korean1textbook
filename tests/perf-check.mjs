@@ -41,14 +41,22 @@ test('#2 remember place: persists lesson section and offers resume', () => {
   assert.ok(html.includes('Last time: Lesson'), 'resume bar text required');
 });
 
-test('#2 study helpers: repeat line and shuffle play-all, no whole-lesson autoplay', () => {
-  assert.ok(html.includes('repeatLineTimes'), 'repeat helper required');
-  assert.ok(html.includes('function toggleRepeat'), 'toggleRepeat required');
-  assert.ok(html.includes('function toggleShuffle'), 'toggleShuffle required');
-  assert.ok(html.includes('function shuffledEntriesFor'), 'shuffledEntriesFor required');
-  assert.ok(html.includes('id="repeat-btn"'), 'repeat button required');
-  assert.ok(html.includes('id="shuffle-btn"'), 'shuffle button required');
+test('#2 repeat and shuffle removed, no whole-lesson autoplay', () => {
+  assert.ok(!html.includes('id="repeat-btn"'), 'repeat button must be removed');
+  assert.ok(!html.includes('id="shuffle-btn"'), 'shuffle button must be removed');
+  assert.ok(!html.includes('function toggleRepeat'), 'toggleRepeat must be removed');
+  assert.ok(!html.includes('function toggleShuffle'), 'toggleShuffle must be removed');
+  assert.ok(!html.includes('function shuffledEntriesFor'), 'shuffledEntriesFor must be removed');
   assert.ok(!html.includes('Play Lesson'), 'must not add whole-lesson autoplay');
+});
+
+test('speed limited to 0.75x, 1x, 1.25x', () => {
+  assert.ok(html.includes('const SPEED_RATES = [0.75, 1, 1.25]'), 'SPEED_RATES must be limited');
+  assert.ok(html.includes('data-rate="0.75"'), '0.75x required');
+  assert.ok(html.includes('data-rate="1"'), '1x required');
+  assert.ok(html.includes('data-rate="1.25"'), '1.25x required');
+  assert.ok(!html.includes('data-rate="0.5"'), '0.5x must be removed');
+  assert.ok(!html.includes('data-rate="1.5"'), '1.5x must be removed');
 });
 
 test('#3 minimal: sticky lesson bar only, expandable search icon, invisible deep-links', () => {

@@ -1048,17 +1048,8 @@ const REG = {};
 let playOrigin = null;
 let playTurnKey = null;
 
-// #2 selected parts: remember place + study helpers (repeat/shuffle). No whole-lesson autoplay.
+// #2 selected part: remember place. No whole-lesson autoplay, no repeat/shuffle.
 const PLACE_KEY = 'koreanLastPlace.v1';
-const REPEAT_KEY = 'koreanRepeatTimes';
-const SHUFFLE_KEY = 'koreanShuffleAll';
-let repeatLineTimes = 1;
-let shuffleAll = false;
-try {
-  const r = parseInt(localStorage.getItem(REPEAT_KEY), 10);
-  if (r === 3) repeatLineTimes = 3;
-  if (localStorage.getItem(SHUFFLE_KEY) === '1') shuffleAll = true;
-} catch(e){}
 function savePlace() {
   try { localStorage.setItem(PLACE_KEY, JSON.stringify({ lesson: activeLesson, section: activeSection, ts: Date.now() })); } catch(e){}
 }
@@ -1069,22 +1060,6 @@ function loadPlace() {
   } catch(e){}
   return null;
 }
-function toggleRepeat() {
-  repeatLineTimes = repeatLineTimes === 1 ? 3 : 1;
-  try { localStorage.setItem(REPEAT_KEY, String(repeatLineTimes)); } catch(e){}
-  syncStudyBtns();
-}
-function toggleShuffle() {
-  shuffleAll = !shuffleAll;
-  try { localStorage.setItem(SHUFFLE_KEY, shuffleAll ? '1' : '0'); } catch(e){}
-  syncStudyBtns();
-}
-function syncStudyBtns() {
-  const rb = document.getElementById('repeat-btn');
-  if (rb) rb.textContent = repeatLineTimes === 1 ? 'Repeat 1×' : 'Repeat 3×';
-  const sb = document.getElementById('shuffle-btn');
-  if (sb) sb.textContent = shuffleAll ? 'Shuffle On' : 'Shuffle Off';
-}
 function resumeSaved() {
   const p = loadPlace();
   if (!p) return;
@@ -1093,14 +1068,6 @@ function resumeSaved() {
   stop();
   render();
   controlsInit();
-}
-function shuffledEntriesFor(dir, lines) {
-  const arr = lines.slice();
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-  }
-  return entriesFor(dir, arr);
 }
 
 // #3 minimal: sticky lesson bar (CSS) + expandable search icon + invisible deep-links.
@@ -1245,8 +1212,6 @@ document.addEventListener('keydown', ev => {
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (ev.key === 'ArrowLeft') { ev.preventDefault(); skipSeconds(-10); }
     else if (ev.key === 'ArrowRight') { ev.preventDefault(); skipSeconds(10); }
-    else if (ev.key === 'r' || ev.key === 'R') { toggleRepeat(); }
-    else if (ev.key === 's' || ev.key === 'S') { toggleShuffle(); }
     else if (ev.key === 'b' || ev.key === 'B') { toggleAB(); }
     else if (ev.key === '/') { ev.preventDefault(); toggleSearch(); }
     else if (ev.key === ' ') { ev.preventDefault(); togglePlayAll(); }
@@ -1278,13 +1243,12 @@ function stop() {
 }
 
 const SPEED_KEY = 'koreanPlayRate';
-const SPEED_RATES = [0.5, 0.75, 1, 1.25, 1.5];
+const SPEED_RATES = [0.75, 1, 1.25];
 
 function getPlayRate() {
   try {
     const v = parseFloat(localStorage.getItem(SPEED_KEY));
     if (SPEED_RATES.indexOf(v) !== -1) return v;
-    if (v === 1.45) return 1.5;
   } catch (e) {}
   return 1;
 }
@@ -1446,13 +1410,7 @@ function entriesFor(dir, lines) {
 function playFiles(paths, origin) {
   stop();
   playOrigin = origin || 'line';
-  let list = [...paths];
-  if (origin === 'line' && repeatLineTimes > 1) {
-    const one = [...paths];
-    list = [];
-    for (let i = 0; i < repeatLineTimes; i++) list.push(...one);
-  }
-  playQueue = list;
+  playQueue = [...paths];
   playing = true;
   syncPlayAllBtn();
   syncTurnBtns();
@@ -1468,12 +1426,7 @@ function togglePlayAll() {
   const id = `a_${activeLesson}_${activeSection}`;
   if (playing && playOrigin === 'all') { stop(); return; }
   savePlace();
-  if (shuffleAll) {
-    const sec = LESSONS[activeLesson].sections[activeSection];
-    playFiles(shuffledEntriesFor(sec.dir, sec.lines), 'all');
-  } else {
-    playFiles(REG[id], 'all');
-  }
+  playFiles(REG[id], 'all');
 }
 
 function togglePlayTurn(id) {
@@ -1582,9 +1535,7 @@ function render() {
     html += `<button class="section-btn${i===activeSection?' active':''}" onclick="setSection(${i})">${s.label}</button>`;
   });
   html += '</div><div class="section-actions">';
-  html += `<details class="speed-dropdown" id="speed-dropdown"><summary>Speed <span class="speed-dropdown-arrow">▾</span></summary><div class="speed-dropdown-panel" id="speed-dropdown-panel"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button><button type="button" data-rate="1.5">1.5×</button></div></details>`;
-  html += `<button class="bar-btn" id="repeat-btn" onclick="toggleRepeat()">Repeat 1×</button>`;
-  html += `<button class="bar-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle Off</button>`;
+  html += `<details class="speed-dropdown" id="speed-dropdown"><summary>Speed <span class="speed-dropdown-arrow">▾</span></summary><div class="speed-dropdown-panel" id="speed-dropdown-panel"><button type="button" data-rate="0.75">0.75×</button><button type="button" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div></details>`;
   html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
   html += `<button class="bar-btn" id="ab-btn" onclick="toggleAB()">A-B Off</button>`;
@@ -1624,7 +1575,6 @@ function render() {
   syncLoopBtn();
   syncPlayAllBtn();
   syncTurnBtns();
-  syncStudyBtns();
   syncABBtn();
   const cb = document.getElementById('copy-link');
   if (cb) cb.onclick = function(e){ e.preventDefault(); copyLessonLink(); };
