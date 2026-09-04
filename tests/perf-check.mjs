@@ -1,4 +1,4 @@
-// Robust test capability for #1 perf + #2 selected parts + #3 minimal + data sanity.
+// Robust test capability for #1 perf + #2 selected parts + #3 minimal + #4 learning controls + data sanity.
 // Run with: node --test tests/perf-check.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -63,6 +63,19 @@ test('#3 minimal: sticky lesson bar only, expandable search icon, invisible deep
   assert.ok(html.includes('#/lesson'), 'deep-link format required');
   assert.ok(html.includes('id="copy-link"'), 'copy link inside existing menu required');
   assert.ok(!html.includes('sticky-search'), 'must not add second sticky bar');
+});
+
+test('#4 learning controls: 10s skip, A-B repeat, keyboard shortcuts', () => {
+  assert.ok(html.includes('function skipSeconds'), 'skipSeconds required');
+  assert.ok(html.includes('function toggleAB'), 'toggleAB required');
+  assert.ok(html.includes('function syncABBtn'), 'syncABBtn required');
+  assert.ok(html.includes('id="back-btn"'), 'back 10s button required');
+  assert.ok(html.includes('id="fwd-btn"'), 'forward 10s button required');
+  assert.ok(html.includes('id="ab-btn"'), 'A-B button required');
+  assert.ok(html.includes('ArrowLeft'), 'left arrow shortcut required');
+  assert.ok(html.includes('ArrowRight'), 'right arrow shortcut required');
+  assert.ok(html.includes('currentTime'), 'seek via currentTime required');
+  assert.ok(html.includes('abLoop'), 'abLoop state required');
 });
 
 test('lesson data intact: 7 lessons x 3 sections', () => {

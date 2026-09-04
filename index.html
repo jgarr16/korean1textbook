@@ -102,6 +102,7 @@
     .bar-btn:active { background: var(--pall-active-bg); color: var(--pall-active-text); }
     .bar-btn.stopping { border-color: #dc2626; background: #dc2626; color: #fff; }
     .bar-btn.stopping:active { background: #b91c1c; border-color: #b91c1c; }
+    .bar-btn.on { background: var(--pall-active-bg); color: var(--pall-active-text); }
     @media (hover: hover) { .bar-btn:hover { background: var(--pall-active-bg); color: var(--pall-active-text); } .bar-btn.stopping:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; } }
     .section-btn { padding: 6px 14px; border: 1px solid var(--sbtn-border); border-radius: 20px; cursor: pointer; font-size: 13px; background: var(--sbtn-bg); color: var(--sbtn-text); white-space: nowrap; }
     .section-btn.active { background: var(--sbtn-active-bg); color: var(--sbtn-active-text); border-color: var(--sbtn-active-border); }
@@ -1204,6 +1205,54 @@ window.addEventListener('hashchange', () => {
   }
 });
 
+// #4 learning controls: 10s skip, A-B repeat, keyboard shortcuts.
+let abLoop = false;
+let abSrc = null;
+function skipSeconds(d) {
+  try {
+    const a = getPlayer();
+    if (!a || !a.src) return;
+    const dur = isFinite(a.duration) ? a.duration : Infinity;
+    let t = (a.currentTime || 0) + d;
+    if (t < 0) t = 0;
+    if (t > dur) t = dur;
+    a.currentTime = t;
+  } catch(e){}
+}
+function toggleAB() {
+  try {
+    const a = getPlayer();
+    if (!abLoop) {
+      if (!a || !a.src) return;
+      abLoop = true;
+      abSrc = a.src;
+    } else {
+      abLoop = false;
+      abSrc = null;
+    }
+    syncABBtn();
+  } catch(e){}
+}
+function syncABBtn() {
+  const b = document.getElementById('ab-btn');
+  if (!b) return;
+  b.classList.toggle('on', abLoop);
+  b.textContent = abLoop ? 'A-B On' : 'A-B Off';
+}
+document.addEventListener('keydown', ev => {
+  try {
+    const tag = ev.target && ev.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (ev.key === 'ArrowLeft') { ev.preventDefault(); skipSeconds(-10); }
+    else if (ev.key === 'ArrowRight') { ev.preventDefault(); skipSeconds(10); }
+    else if (ev.key === 'r' || ev.key === 'R') { toggleRepeat(); }
+    else if (ev.key === 's' || ev.key === 'S') { toggleShuffle(); }
+    else if (ev.key === 'b' || ev.key === 'B') { toggleAB(); }
+    else if (ev.key === '/') { ev.preventDefault(); toggleSearch(); }
+    else if (ev.key === ' ') { ev.preventDefault(); togglePlayAll(); }
+  } catch(e){}
+});
+
 function later(ms, token) {
   clearTimeout(pendingTimer);
   pendingTimer = setTimeout(() => { if (token === playToken) playNext(); }, ms);
@@ -1220,9 +1269,12 @@ function stop() {
   playing = false;
   playOrigin = null;
   playTurnKey = null;
+  abLoop = false;
+  abSrc = null;
   syncLoopBtn();
   syncPlayAllBtn();
   syncTurnBtns();
+  syncABBtn();
 }
 
 const SPEED_KEY = 'koreanPlayRate';
@@ -1354,6 +1406,15 @@ function prefetchPath(path) {
 
 function playNext() {
   const token = playToken;
+  if (abLoop && abSrc) {
+    const a = getPlayer();
+    a.onended = () => later(300, token);
+    a.onerror = () => later(100, token);
+    a.src = abSrc;
+    applyPlayRate(a);
+    a.play().then(() => applyPlayRate(a)).catch(() => later(100, token));
+    return;
+  }
   if (!playQueue.length) {
     if (!loopSource) { playing = false; playOrigin = null; playTurnKey = null; syncPlayAllBtn(); syncTurnBtns(); return; }
     playQueue = [...loopSource];
@@ -1526,6 +1587,9 @@ function render() {
   html += `<button class="bar-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle Off</button>`;
   html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
+  html += `<button class="bar-btn" id="back-btn" onclick="skipSeconds(-10)">-10s</button>`;
+  html += `<button class="bar-btn" id="fwd-btn" onclick="skipSeconds(10)">+10s</button>`;
+  html += `<button class="bar-btn" id="ab-btn" onclick="toggleAB()">A-B Off</button>`;
   html += '</div></div>';
   const sec = lesson.sections[activeSection];
   html += '<div class="section-content">';
@@ -1563,6 +1627,7 @@ function render() {
   syncPlayAllBtn();
   syncTurnBtns();
   syncStudyBtns();
+  syncABBtn();
   const cb = document.getElementById('copy-link');
   if (cb) cb.onclick = function(e){ e.preventDefault(); copyLessonLink(); };
   updateHash();
