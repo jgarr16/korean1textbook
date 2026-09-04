@@ -1,4 +1,4 @@
-// Robust test capability for #1 perf + #2 selected parts + data sanity.
+// Robust test capability for #1 perf + #2 selected parts + #3 minimal + data sanity.
 // Run with: node --test tests/perf-check.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -49,6 +49,20 @@ test('#2 study helpers: repeat line and shuffle play-all, no whole-lesson autopl
   assert.ok(html.includes('id="repeat-btn"'), 'repeat button required');
   assert.ok(html.includes('id="shuffle-btn"'), 'shuffle button required');
   assert.ok(!html.includes('Play Lesson'), 'must not add whole-lesson autoplay');
+});
+
+test('#3 minimal: sticky lesson bar only, expandable search icon, invisible deep-links', () => {
+  assert.ok(html.includes('.nav-wrapper { display: flex; align-items: center; background: #1e293b; position: sticky; top: 0;'), 'lesson bar must be sticky');
+  assert.ok(html.includes('id="search-bar"'), 'search bar required');
+  assert.ok(html.includes('id="search-input"'), 'search input required');
+  assert.ok(html.includes('function toggleSearch'), 'toggleSearch required');
+  assert.ok(html.includes('function doSearch'), 'doSearch required');
+  assert.ok(html.includes('function jumpToResult'), 'jumpToResult required');
+  assert.ok(html.includes('function parseHash'), 'parseHash required');
+  assert.ok(html.includes('function updateHash'), 'updateHash required');
+  assert.ok(html.includes('#/lesson'), 'deep-link format required');
+  assert.ok(html.includes('id="copy-link"'), 'copy link inside existing menu required');
+  assert.ok(!html.includes('sticky-search'), 'must not add second sticky bar');
 });
 
 test('lesson data intact: 7 lessons x 3 sections', () => {

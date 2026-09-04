@@ -58,10 +58,20 @@
       }
     }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--fg); font-size: calc(16px * var(--font-scale)); }
-    .nav-wrapper { display: flex; align-items: center; background: #1e293b; }
+    .nav-wrapper { display: flex; align-items: center; background: #1e293b; position: sticky; top: 0; z-index: 30; }
     .lesson-nav { display: flex; gap: 4px; padding: 10px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .lesson-nav::-webkit-scrollbar { display: none; }
-    .nav-controls { padding: 0 10px; flex-shrink: 0; position: relative; }
+    .nav-controls { padding: 0 10px; flex-shrink: 0; position: relative; display: flex; align-items: center; gap: 6px; }
+    .search-btn { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 36px; padding: 5px 9px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; font-size: 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    #search-bar { position: fixed; top: 56px; left: 0; right: 0; z-index: 29; background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
+    #search-bar[hidden] { display: none; }
+    .search-row { display: flex; gap: 8px; align-items: center; }
+    #search-input { flex: 1; min-width: 0; padding: 10px 12px; min-height: 40px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 16px; background: var(--card); color: var(--fg); }
+    .search-close-btn { padding: 8px 12px; min-height: 40px; border: 1px solid var(--pall-border); border-radius: 8px; background: transparent; color: var(--pall-text); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    #search-results { margin-top: 8px; max-height: 40vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .search-result-item { text-align: left; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--fg); font: inherit; font-size: 0.9375em; cursor: pointer; line-height: 1.4; }
+    .search-result-meta { display: block; font-size: 0.75em; color: var(--muted); margin-bottom: 2px; }
+    .search-empty { color: var(--muted); font-size: 0.875em; padding: 6px 2px; }
     .lesson-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; background: #334155; color: #94a3b8; white-space: nowrap; }
     .lesson-btn.active { background: #3b82f6; color: #fff; }
     .lesson-header { padding: 18px 16px 6px; }
@@ -145,6 +155,13 @@
 </head>
 <body>
 <div id="app"></div>
+<div id="search-bar" hidden>
+  <div class="search-row">
+    <input id="search-input" type="search" placeholder="Search Korean or English…" autocomplete="off" aria-label="Search lessons">
+    <button type="button" class="search-close-btn" onclick="closeSearch()">Close</button>
+  </div>
+  <div id="search-results" aria-live="polite"></div>
+</div>
 <div id="def-bubble" role="dialog" aria-live="polite"></div>
 <script>
 const LESSONS = [
@@ -1085,6 +1102,108 @@ function shuffledEntriesFor(dir, lines) {
   return entriesFor(dir, arr);
 }
 
+// #3 minimal: sticky lesson bar (CSS) + expandable search icon + invisible deep-links.
+const SECTION_SLUGS = ['c1', 'c2', 'n'];
+function sectionSlug(i) { return SECTION_SLUGS[i] || 'c1'; }
+function hashFor(l, s) { return '#/lesson' + (l + 1) + '-' + sectionSlug(s); }
+function parseHash() {
+  try {
+    const h = location.hash || '';
+    const m = h.match(/#\/lesson([1-7])-(c1|c2|n)/i);
+    if (!m) return null;
+    const l = parseInt(m[1], 10) - 1;
+    const s = SECTION_SLUGS.indexOf(m[2].toLowerCase());
+    if (l < 0 || l > 6 || s < 0) return null;
+    return { lesson: l, section: s };
+  } catch(e){ return null; }
+}
+function updateHash() {
+  try { history.replaceState(null, '', hashFor(activeLesson, activeSection)); } catch(e){}
+}
+let searchOpen = false;
+function toggleSearch() {
+  const bar = document.getElementById('search-bar');
+  if (!bar) return;
+  if (bar.hasAttribute('hidden')) {
+    bar.removeAttribute('hidden');
+    searchOpen = true;
+    const inp = document.getElementById('search-input');
+    if (inp) { doSearch(inp.value || ''); inp.focus(); }
+  } else {
+    closeSearch();
+  }
+}
+function closeSearch() {
+  const bar = document.getElementById('search-bar');
+  if (bar) bar.setAttribute('hidden', '');
+  searchOpen = false;
+  const res = document.getElementById('search-results');
+  if (res) res.innerHTML = '';
+}
+function doSearch(q) {
+  const res = document.getElementById('search-results');
+  if (!res) return;
+  q = String(q || '').trim().toLowerCase();
+  if (!q) { res.innerHTML = '<div class="search-empty">Type to search Korean or English across all 7 lessons.</div>'; return; }
+  const out = [];
+  LESSONS.forEach((lesson, li) => {
+    lesson.sections.forEach((sec, si) => {
+      sec.lines.forEach((line) => {
+        const hay = String(line.text + ' ' + (line.en || '')).toLowerCase();
+        if (hay.indexOf(q) !== -1) out.push({ li, si, line });
+      });
+    });
+  });
+  if (!out.length) { res.innerHTML = '<div class="search-empty">No matches.</div>'; return; }
+  res.innerHTML = out.slice(0, 30).map((r, idx) => {
+    const meta = 'Lesson ' + (r.li + 1) + ' / ' + escHtml(LESSONS[r.li].sections[r.si].label);
+    return '<button type="button" class="search-result-item" data-idx="' + idx + '" data-l="' + r.li + '" data-s="' + r.si + '"><span class="search-result-meta">' + meta + '</span>' + escHtml(r.line.text) + '</button>';
+  }).join('');
+  res.querySelectorAll('.search-result-item').forEach(btn => {
+    btn.onclick = function() {
+      jumpToResult(parseInt(btn.getAttribute('data-l'), 10), parseInt(btn.getAttribute('data-s'), 10));
+    };
+  });
+}
+function jumpToResult(l, s) {
+  if (!LESSONS[l] || !LESSONS[l].sections[s]) return;
+  activeLesson = l;
+  activeSection = s;
+  stop();
+  savePlace();
+  render();
+  controlsInit();
+  updateHash();
+  closeSearch();
+  try { window.scrollTo(0, 0); } catch(e){}
+}
+function copyLessonLink() {
+  try {
+    updateHash();
+    const url = location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).catch(() => {});
+    else {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+  } catch(e){}
+}
+window.addEventListener('hashchange', () => {
+  const p = parseHash();
+  if (p && (p.lesson !== activeLesson || p.section !== activeSection)) {
+    activeLesson = p.lesson;
+    activeSection = p.section;
+    stop();
+    savePlace();
+    render();
+    controlsInit();
+  }
+});
+
 function later(ms, token) {
   clearTimeout(pendingTimer);
   pendingTimer = setTimeout(() => { if (token === playToken) playNext(); }, ms);
@@ -1353,8 +1472,12 @@ function buildBlocks(lines) {
 let activeLesson = 0;
 let activeSection = 0;
 try {
-  const p = loadPlace();
-  if (p) { activeLesson = p.lesson; activeSection = p.section; }
+  const h = parseHash();
+  if (h) { activeLesson = h.lesson; activeSection = h.section; }
+  else {
+    const p = loadPlace();
+    if (p) { activeLesson = p.lesson; activeSection = p.section; }
+  }
 } catch(e){}
 
 function render() {
@@ -1363,7 +1486,7 @@ function render() {
   LESSONS.forEach((l, i) => {
     html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">Lesson ${i+1}</button>`;
   });
-  html += `</nav><div class="nav-controls">
+  html += `</nav><div class="nav-controls"><button type="button" class="search-btn" onclick="toggleSearch()" title="Search" aria-label="Search">⌕</button>
   <details class="font-dropdown" id="font-dropdown">
     <summary title="Display settings">
       <span class="font-summary-aa">Aa</span>
@@ -1380,6 +1503,9 @@ function render() {
         <button type="button" id="theme-light">Light</button>
         <button type="button" id="theme-system">System</button>
         <button type="button" id="theme-dark">Dark</button>
+      </div>
+      <div class="ctrl-row">
+        <button type="button" id="copy-link" style="flex:1">Copy Link</button>
       </div>
     </div>
   </details>
@@ -1437,6 +1563,9 @@ function render() {
   syncPlayAllBtn();
   syncTurnBtns();
   syncStudyBtns();
+  const cb = document.getElementById('copy-link');
+  if (cb) cb.onclick = function(e){ e.preventDefault(); copyLessonLink(); };
+  updateHash();
   warmSection(REG[allKey]);
 }
 
@@ -1486,6 +1615,11 @@ render();
       var b=document.getElementById("theme-"+x);
       if(b) b.onclick=function(e){ e.preventDefault(); tapply(x); };
     });
+    const si = document.getElementById('search-input');
+    if (si && !si.dataset.bound) {
+      si.dataset.bound = '1';
+      si.addEventListener('input', () => doSearch(si.value));
+    }
   };
   controlsInit();
 })();
