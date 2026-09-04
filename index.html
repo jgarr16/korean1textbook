@@ -1390,7 +1390,7 @@ function highlightLine(key) {
   const el = document.querySelector('.line-row[data-line="' + key + '"]');
   if (el) {
     el.classList.add('active-line');
-    try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch(e){}
+    try { el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' }); } catch(e){}
   }
 }
 function clearHighlight() {

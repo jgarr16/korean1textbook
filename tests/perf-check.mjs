@@ -91,7 +91,7 @@ test('#4 learning controls: Loop Line repeat and keyboard shortcuts, no +/-10s b
   assert.ok(html.includes('abLoop'), 'abLoop state required');
 });
 
-test('follow-along highlight: line rows carry data-line and playback highlights', () => {
+test('follow-along highlight: line rows carry data-line and playback highlights centered', () => {
   assert.ok(html.includes('data-line="'), 'line rows must carry data-line');
   assert.ok(html.includes('.line-row.active-line'), 'active-line CSS required');
   assert.ok(html.includes('function highlightLine'), 'highlightLine required');
@@ -99,6 +99,7 @@ test('follow-along highlight: line rows carry data-line and playback highlights'
   assert.ok(html.includes('function entriesForWithKeys'), 'entriesForWithKeys required');
   assert.ok(html.includes('lineKey'), 'playback items must carry lineKey');
   assert.ok(html.includes('highlightLine(item.lineKey'), 'playNext must highlight current line');
+  assert.ok(html.includes("block: 'center'"), 'highlight must scroll to center');
 });
 
 test('lesson data intact: 7 lessons x 3 sections', () => {
