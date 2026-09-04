@@ -73,6 +73,8 @@
     .lesson-prefix { color: #e2e8f0; font-size: 14px; font-weight: 700; padding-left: 12px; white-space: nowrap; }
     .nav-controls { padding: 0 10px; flex-shrink: 0; position: relative; display: flex; align-items: center; gap: 6px; }
     .search-btn { display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 44px; padding: 5px 10px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; font-size: 24px; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    #global-stop { display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 44px; padding: 5px 12px; border: 1px solid #dc2626; border-radius: 8px; background: #dc2626; color: #fff; font-size: 14px; font-weight: 700; line-height: 1; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+    #global-stop[hidden] { display: none; }
     #search-bar { position: fixed; top: 56px; left: 0; right: 0; z-index: 29; background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
     #search-bar[hidden] { display: none; }
     .search-row { display: flex; gap: 8px; align-items: center; }
@@ -1559,12 +1561,21 @@ function togglePlayTurn(id) {
   syncTurnBtns();
 }
 
+function syncGlobalStop() {
+  const b = document.getElementById('global-stop');
+  if (!b) return;
+  if (playing) b.removeAttribute('hidden');
+  else b.setAttribute('hidden', '');
+}
+
 function syncPlayAllBtn() {
   const btn = document.getElementById('play-all-btn');
-  if (!btn) return;
-  const on = playing && playOrigin === 'all';
-  btn.classList.toggle('stopping', on);
-  btn.textContent = on ? '■ Stop' : '▶ Play All';
+  if (btn) {
+    const on = playing && playOrigin === 'all';
+    btn.classList.toggle('stopping', on);
+    btn.textContent = on ? '■ Stop' : '▶ Play All';
+  }
+  syncGlobalStop();
 }
 
 function syncTurnBtns() {
@@ -1573,14 +1584,17 @@ function syncTurnBtns() {
     btn.classList.toggle('stopping', on);
     btn.textContent = on ? '■ Stop' : '▶ Play Turn';
   });
+  syncGlobalStop();
 }
 
 function syncLoopBtn() {
   const btn = document.getElementById('loop-all-btn');
-  if (!btn) return;
-  const on = !!loopKey;
-  btn.classList.toggle('stopping', on);
-  btn.textContent = on ? '■ Stop' : '↻ Loop All';
+  if (btn) {
+    const on = !!loopKey;
+    btn.classList.toggle('stopping', on);
+    btn.textContent = on ? '■ Stop' : '↻ Loop All';
+  }
+  syncGlobalStop();
 }
 
 function toggleLoop(id) {
@@ -1622,7 +1636,7 @@ function render() {
   LESSONS.forEach((l, i) => {
     html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">${i+1}</button>`;
   });
-  html += `</nav><div class="nav-controls"><button type="button" class="search-btn" onclick="toggleSearch()" title="Search" aria-label="Search">🔍</button>
+  html += `</nav><div class="nav-controls"><button type="button" id="global-stop" onclick="stop()" title="Stop" aria-label="Stop playback" hidden>■ Stop</button><button type="button" class="search-btn" onclick="toggleSearch()" title="Search" aria-label="Search">🔍</button>
   <details class="font-dropdown" id="font-dropdown">
     <summary title="Settings" aria-label="Settings">
       <span class="font-summary-aa">⚙</span>
