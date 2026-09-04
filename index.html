@@ -1205,7 +1205,7 @@ window.addEventListener('hashchange', () => {
   }
 });
 
-// #4 learning controls: 10s skip, A-B repeat, keyboard shortcuts.
+// #4 learning controls: A-B repeat, keyboard shortcuts. No -10s/+10s buttons.
 let abLoop = false;
 let abSrc = null;
 function skipSeconds(d) {
@@ -1587,8 +1587,6 @@ function render() {
   html += `<button class="bar-btn" id="shuffle-btn" onclick="toggleShuffle()">Shuffle Off</button>`;
   html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
-  html += `<button class="bar-btn" id="back-btn" onclick="skipSeconds(-10)">-10s</button>`;
-  html += `<button class="bar-btn" id="fwd-btn" onclick="skipSeconds(10)">+10s</button>`;
   html += `<button class="bar-btn" id="ab-btn" onclick="toggleAB()">A-B Off</button>`;
   html += '</div></div>';
   const sec = lesson.sections[activeSection];
