@@ -108,6 +108,23 @@ test('follow-along completion scrolls back to top and clears highlight', () => {
   assert.ok(html.includes('top: 0'), 'must scroll back to top on completion');
 });
 
+test('mobile fullscreen, large search and gear icons, favicon and about popup', () => {
+  assert.ok(html.includes('rel="icon"'), 'favicon required');
+  assert.ok(html.includes('icon.png'), 'uploaded icon.png must be used');
+  assert.ok(html.includes('rel="manifest"'), 'manifest required');
+  assert.ok(html.includes('apple-mobile-web-app-capable'), 'iOS fullscreen meta required');
+  assert.ok(html.includes('mobile-web-app-capable'), 'Android fullscreen meta required');
+  assert.ok(html.includes('font-size: 24px'), 'large search icon required');
+  assert.ok(html.includes('>🔍</button>'), 'recognizable search emoji required');
+  assert.ok(html.includes('>⚙</span>'), 'gear settings icon required');
+  assert.ok(html.includes('id="about-link"'), 'about link required');
+  assert.ok(html.includes('id="about-overlay"'), 'about overlay required');
+  assert.ok(html.includes('function openAbout'), 'openAbout required');
+  assert.ok(html.includes('function closeAbout'), 'closeAbout required');
+  assert.ok(html.includes('GarrigAI LLC'), 'credit text required');
+  assert.ok(html.includes('ACC Riverbat'), 'ACC credit required');
+});
+
 test('lesson data intact: 7 lessons x 3 sections', () => {
   const lessons = (html.match(/title: "Lesson \d+:/g) || []).length;
   assert.equal(lessons, 7);

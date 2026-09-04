@@ -13,8 +13,16 @@
   }());
 </script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Korean 1 Textbook audio player - Lessons 1-7">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Korean 1">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <title>Korean 1 Textbook</title>
@@ -63,7 +71,7 @@
     .lesson-nav::-webkit-scrollbar { display: none; }
     .lesson-prefix { color: #e2e8f0; font-size: 14px; font-weight: 700; padding-left: 12px; white-space: nowrap; }
     .nav-controls { padding: 0 10px; flex-shrink: 0; position: relative; display: flex; align-items: center; gap: 6px; }
-    .search-btn { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 36px; padding: 5px 9px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; font-size: 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .search-btn { display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 44px; padding: 5px 10px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; font-size: 24px; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     #search-bar { position: fixed; top: 56px; left: 0; right: 0; z-index: 29; background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
     #search-bar[hidden] { display: none; }
     .search-row { display: flex; gap: 8px; align-items: center; }
@@ -141,9 +149,9 @@
     }
     /* Controls dropdown (font + theme) */
     .font-dropdown { position: relative; flex-shrink: 0; }
-    .font-dropdown summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; min-width: 44px; min-height: 36px; padding: 5px 9px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; -webkit-tap-highlight-color: transparent; user-select: none; }
+    .font-dropdown summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; min-width: 48px; min-height: 44px; padding: 5px 10px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; -webkit-tap-highlight-color: transparent; user-select: none; }
     .font-dropdown summary::-webkit-details-marker { display: none; }
-    .font-summary-aa { font-size: 13px; font-weight: 700; letter-spacing: -0.03em; }
+    .font-summary-aa { font-size: 24px; font-weight: 700; line-height: 1; }
     .font-summary-arrow { font-size: 10px; color: #94a3b8; line-height: 1; }
     .font-dropdown[open] summary { background: #475569; }
     .font-dropdown[open] .font-summary-arrow { display: inline-block; transform: rotate(180deg); }
@@ -154,6 +162,14 @@
     .ctrl-row button:active, .ctrl-row button.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
     .ctrl-row button:disabled { opacity: 0.35; cursor: not-allowed; }
     .ctrl-label { font-size: 11px; font-weight: 500; color: #94a3b8; margin-right: 2px; user-select: none; min-width: 36px; text-align: right; }
+    #about-overlay[hidden] { display: none; }
+    #about-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.55); }
+    .about-card { position: relative; max-width: 360px; width: 100%; padding: 24px 20px 20px; background: var(--card); color: var(--fg); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.3); text-align: center; }
+    .about-icon { width: 96px; height: 96px; border-radius: 20px; object-fit: cover; margin: 0 auto 12px; display: block; }
+    .about-title { font-size: 1.125em; font-weight: 800; margin-bottom: 8px; }
+    .about-text { font-size: 0.9375em; line-height: 1.5; color: var(--muted); }
+    .about-close-x { position: absolute; top: 8px; right: 10px; border: none; background: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; padding: 6px; }
+    .about-close-btn { margin-top: 16px; padding: 10px 18px; min-height: 44px; border-radius: 10px; border: 1px solid var(--pall-border); background: transparent; color: var(--pall-text); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -166,6 +182,15 @@
   <div id="search-results" aria-live="polite"></div>
 </div>
 <div id="def-bubble" role="dialog" aria-live="polite"></div>
+<div id="about-overlay" hidden>
+  <div class="about-card" role="dialog" aria-modal="true" aria-label="About">
+    <button type="button" class="about-close-x" onclick="closeAbout()" aria-label="Close">×</button>
+    <img src="icon.png" alt="App icon" class="about-icon">
+    <div class="about-title">Korean 1 Textbook</div>
+    <div class="about-text">Created as a personal study aid for ACC Riverbat staff and students by GarrigAI LLC.</div>
+    <button type="button" class="about-close-btn" onclick="closeAbout()">Close</button>
+  </div>
+</div>
 <script>
 const LESSONS = [
   {
@@ -1019,8 +1044,15 @@ document.addEventListener('click', ev => {
   if (bubble && bubble.classList.contains('visible') && !bubble.contains(ev.target)) hideDefBubble();
   const speed = document.getElementById('speed-dropdown');
   if (speed && speed.open && !speed.contains(ev.target)) speed.removeAttribute('open');
+  const about = document.getElementById('about-overlay');
+  if (about && !about.hasAttribute('hidden')) {
+    const card = about.querySelector('.about-card');
+    if (card && !card.contains(ev.target)) closeAbout();
+  }
 });
-document.addEventListener('keydown', ev => { if (ev.key === 'Escape') hideDefBubble(); });
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') { hideDefBubble(); closeAbout(); closeSearch(); }
+});
 window.addEventListener('scroll', hideDefBubble, true);
 
 const COLORS = {
@@ -1161,6 +1193,16 @@ function copyLessonLink() {
       document.body.removeChild(ta);
     }
   } catch(e){}
+}
+function openAbout() {
+  const o = document.getElementById('about-overlay');
+  if (o) o.removeAttribute('hidden');
+  const d = document.getElementById('font-dropdown');
+  if (d) d.removeAttribute('open');
+}
+function closeAbout() {
+  const o = document.getElementById('about-overlay');
+  if (o) o.setAttribute('hidden', '');
 }
 window.addEventListener('hashchange', () => {
   const p = parseHash();
@@ -1527,10 +1569,10 @@ function render() {
   LESSONS.forEach((l, i) => {
     html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">${i+1}</button>`;
   });
-  html += `</nav><div class="nav-controls"><button type="button" class="search-btn" onclick="toggleSearch()" title="Search" aria-label="Search">⌕</button>
+  html += `</nav><div class="nav-controls"><button type="button" class="search-btn" onclick="toggleSearch()" title="Search" aria-label="Search">🔍</button>
   <details class="font-dropdown" id="font-dropdown">
-    <summary title="Display settings">
-      <span class="font-summary-aa">Aa</span>
+    <summary title="Settings" aria-label="Settings">
+      <span class="font-summary-aa">⚙</span>
       <span class="font-summary-arrow">▾</span>
     </summary>
     <div class="font-dropdown-panel">
@@ -1547,6 +1589,9 @@ function render() {
       </div>
       <div class="ctrl-row">
         <button type="button" id="copy-link" style="flex:1">Copy Link</button>
+      </div>
+      <div class="ctrl-row">
+        <button type="button" id="about-link" style="flex:1">ⓘ About</button>
       </div>
     </div>
   </details>
@@ -1611,6 +1656,8 @@ function render() {
   syncABBtn();
   const cb = document.getElementById('copy-link');
   if (cb) cb.onclick = function(e){ e.preventDefault(); copyLessonLink(); };
+  const ab = document.getElementById('about-link');
+  if (ab) ab.onclick = function(e){ e.preventDefault(); openAbout(); };
   updateHash();
   warmSection(REG[allKey]);
 }

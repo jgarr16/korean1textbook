@@ -1,0 +1,16 @@
+{
+  "name": "Korean 1 Textbook",
+  "short_name": "Korean 1",
+  "description": "Korean 1 Textbook audio player - Lessons 1-7",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
