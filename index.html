@@ -120,6 +120,7 @@
     .play-turn-btn.stopping:active { background: #b91c1c; border-color: #b91c1c !important; }
     .line-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; }
     .line-row + .line-row { border-top: 1px solid var(--sep); }
+    .line-row.active-line { background: rgba(59,130,246,0.12); box-shadow: inset 3px 0 0 #3b82f6; }
     .line-text { font-size: 1.0625em; flex: 1; line-height: 1.4; }
     .play-line-btn { padding: 7px 14px; border: none; border-radius: 20px; cursor: pointer; font-size: 0.8125em; font-weight: 600; min-height: 38px; min-width: 52px; text-align: center; color: #fff; }
     .line-actions { display: flex; flex-direction: row; align-items: center; gap: 6px; margin-left: 10px; flex-shrink: 0; }
@@ -1241,6 +1242,7 @@ function stop() {
   syncPlayAllBtn();
   syncTurnBtns();
   syncABBtn();
+  try { clearHighlight(); } catch(e){}
 }
 
 const SPEED_KEY = 'koreanPlayRate';
@@ -1369,6 +1371,32 @@ function prefetchPath(path) {
   fetch(path).then(r => r.ok ? r.blob() : null).then(b => { if (b) storeBlob(path, b); }).catch(() => {});
 }
 
+function entriesFor(dir, lines) {
+  return entriesForWithKeys(dir, lines.map(l => ({ line: l, key: null })));
+}
+function entriesForWithKeys(dir, pairs) {
+  const out = [];
+  for (const { line, key } of pairs) {
+    const files = line.files || [line.file];
+    files.forEach((f, i) => {
+      out.push({ src: `audio/${dir}/${f}`, gap: i < files.length - 1 ? MERGE_GAP : LINE_GAP, lineKey: key });
+    });
+  }
+  return out;
+}
+function highlightLine(key) {
+  document.querySelectorAll('.line-row.active-line').forEach(el => el.classList.remove('active-line'));
+  if (!key) return;
+  const el = document.querySelector('.line-row[data-line="' + key + '"]');
+  if (el) {
+    el.classList.add('active-line');
+    try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch(e){}
+  }
+}
+function clearHighlight() {
+  document.querySelectorAll('.line-row.active-line').forEach(el => el.classList.remove('active-line'));
+}
+
 function playNext() {
   const token = playToken;
   if (abLoop && abSrc) {
@@ -1387,6 +1415,7 @@ function playNext() {
     return;
   }
   const item = playQueue.shift();
+  if (item.lineKey) highlightLine(item.lineKey);
   if (playQueue.length > 0) prefetchPath(playQueue[0].src);
   if (playQueue.length > 1) prefetchPath(playQueue[1].src);
   const a = getPlayer();
@@ -1395,17 +1424,6 @@ function playNext() {
   a.src = srcFor(item.src);
   applyPlayRate(a);
   a.play().then(() => applyPlayRate(a)).catch(() => later(100, token));
-}
-
-function entriesFor(dir, lines) {
-  const out = [];
-  for (const line of lines) {
-    const files = line.files || [line.file];
-    files.forEach((f, i) => {
-      out.push({ src: `audio/${dir}/${f}`, gap: i < files.length - 1 ? MERGE_GAP : LINE_GAP });
-    });
-  }
-  return out;
 }
 
 function playFiles(paths, origin) {
@@ -1546,11 +1564,17 @@ function render() {
   html += `<div class="section-header"><div class="section-label">${sec.label}</div><div class="section-title">${sec.title}</div></div>`;
   const blocks = buildBlocks(sec.lines);
   const allKey = `a_${activeLesson}_${activeSection}`;
-  REG[allKey] = entriesFor(sec.dir, sec.lines);
+  const allPairs = [];
+  blocks.forEach((block, bi) => {
+    block.lines.forEach((line, li) => {
+      allPairs.push({ line, key: `l_${activeLesson}_${activeSection}_${bi}_${li}` });
+    });
+  });
+  REG[allKey] = entriesForWithKeys(sec.dir, allPairs);
   blocks.forEach((block, bi) => {
     const color = COLORS[block.speaker] || '#64748b';
     const turnKey = `t_${activeLesson}_${activeSection}_${bi}`;
-    REG[turnKey] = entriesFor(sec.dir, block.lines);
+    REG[turnKey] = entriesForWithKeys(sec.dir, block.lines.map((line, li) => ({ line, key: `l_${activeLesson}_${activeSection}_${bi}_${li}` })));
     html += `<div class="speaker-block">`;
     html += `<div class="speaker-header">`;
     html += `<div class="speaker-name"><span class="speaker-dot" style="background:${color}"></span><span style="color:${color}">${block.speaker}</span></div>`;
@@ -1558,8 +1582,8 @@ function render() {
     html += `</div>`;
     block.lines.forEach((line, li) => {
       const lineKey = `l_${activeLesson}_${activeSection}_${bi}_${li}`;
-      REG[lineKey] = entriesFor(sec.dir, [line]);
-      html += `<div class="line-row">`;
+      REG[lineKey] = entriesForWithKeys(sec.dir, [{ line, key: lineKey }]);
+      html += `<div class="line-row" data-line="${lineKey}">`;
       html += `<div class="line-text">${renderLineText(line.text)}</div>`;
       html += `<div class="line-actions">`;
       html += `<button class="play-line-btn" style="background:${color}" onclick="playReg('${lineKey}')">▶</button>`;
