@@ -610,7 +610,7 @@ const LESSONS = [
           { speaker: "나레이터", file: "segment_10.mp3", text: "다음 주말에는 여동생이 뉴욕에서 올 거예요.", en: "Next weekend my younger sister will come from New York." },
           { speaker: "나레이터", file: "segment_11.mp3", text: "동생은 다음 학기에 대학에 가요.", en: "My sister is going to college next semester." },
           { speaker: "나레이터", file: "segment_12.mp3", text: "심리학을 전공할 거예요.", en: "She's going to major in psychology." },
-          { speaker: "나레이터", file: "segment_13.mp3", text: "동생도 저도 많이 바빠요.", en: "Both my sister and I are very busy." },
+          { speaker: "na레이터", file: "segment_13.mp3", text: "동생도 저도 많이 바빠요.", en: "Both my sister and I are very busy." },
           { speaker: "나레이터", file: "segment_14.mp3", text: "그래서", en: "So" },
           { speaker: "나레이터", file: "segment_15.mp3", text: "서로 전화를 자주 못 해요.", en: "we can't call each other often." },
           { speaker: "나레이터", file: "segment_16.mp3", text: "이번에 동생하고 오랜만에 이야기를 많이 할 거예요.", en: "This time we'll talk a lot after a long time." },
@@ -1689,21 +1689,6 @@ render();
     if(t==="dark") document.documentElement.setAttribute("data-theme","dark");
     else if(t==="light") document.documentElement.setAttribute("data-theme","light");
     else document.documentElement.removeAttribute("data-theme");
-    ["light","system","dark"].forEach(function(x){
-      var b=document.getElementById("theme-"+x);
-      if(b){ b.classList.toggle("active", x===t); }
-    });
-  }
-  function close(){ var d=document.getElementById("font-dropdown"); if(d) d.removeAttribute("open"); }
-  window.controlsInit = function(){
-    fapply(fget());
-    tapply(tget());
-    var sm=document.getElementById("font-smaller");
-    var rs=document.getElementById("font-reset");
-    var lg=document.getElementById("font-larger");
-    if(sm) sm.onclick=function(e){ e.preventDefault(); fapply(fget()-FSTEP); };
-    if(rs) rs.onclick=function(e){ e.preventDefault(); fapply(FDEF); };
-    if(lg) lg.onclick=function(e){ e.preventDefault(); fapply(fget()+FSTEP); };
     ["light","system","dark"].forEach(function(x){
       var b=document.getElementById("theme-"+x);
       if(b) b.onclick=function(e){ e.preventDefault(); tapply(x); };
