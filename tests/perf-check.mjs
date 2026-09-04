@@ -73,10 +73,19 @@ test('#3 minimal: sticky lesson bar only, expandable search icon, invisible deep
   assert.ok(!html.includes('sticky-search'), 'must not add second sticky bar');
 });
 
-test('#4 learning controls: A-B repeat and keyboard shortcuts, no +/-10s buttons', () => {
+test('compact lesson nav uses Lesson prefix plus numbered buttons', () => {
+  assert.ok(html.includes('lesson-prefix'), 'lesson prefix class required');
+  assert.ok(html.includes('>Lesson</span>'), 'Lesson prefix label required');
+  assert.ok(!html.includes('>Lesson 1</button>'), 'old redundant Lesson 1 button must be removed');
+  assert.ok(html.includes('onclick="setLesson'), 'lesson buttons required');
+});
+
+test('#4 learning controls: Loop Line repeat and keyboard shortcuts, no +/-10s buttons', () => {
   assert.ok(html.includes('function toggleAB'), 'toggleAB required');
   assert.ok(html.includes('function syncABBtn'), 'syncABBtn required');
-  assert.ok(html.includes('id="ab-btn"'), 'A-B button required');
+  assert.ok(html.includes('id="ab-btn"'), 'Loop Line button required');
+  assert.ok(html.includes('Loop Line'), 'Loop Line label required');
+  assert.ok(!html.includes('A-B Off'), 'old A-B label must be removed');
   assert.ok(!html.includes('id="back-btn"'), 'back 10s button must be removed');
   assert.ok(!html.includes('id="fwd-btn"'), 'forward 10s button must be removed');
   assert.ok(html.includes('abLoop'), 'abLoop state required');

@@ -61,6 +61,7 @@
     .nav-wrapper { display: flex; align-items: center; background: #1e293b; position: sticky; top: 0; z-index: 30; }
     .lesson-nav { display: flex; gap: 4px; padding: 10px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; flex: 1; }
     .lesson-nav::-webkit-scrollbar { display: none; }
+    .lesson-prefix { color: #e2e8f0; font-size: 14px; font-weight: 700; padding-left: 12px; white-space: nowrap; }
     .nav-controls { padding: 0 10px; flex-shrink: 0; position: relative; display: flex; align-items: center; gap: 6px; }
     .search-btn { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 36px; padding: 5px 9px; border: 1px solid #475569; border-radius: 8px; background: #334155; color: #e2e8f0; font-size: 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     #search-bar { position: fixed; top: 56px; left: 0; right: 0; z-index: 29; background: var(--card); border-bottom: 1px solid var(--border); padding: 10px 16px; box-shadow: 0 8px 22px rgba(0,0,0,0.12); }
@@ -1172,7 +1173,7 @@ window.addEventListener('hashchange', () => {
   }
 });
 
-// #4 learning controls: A-B repeat, keyboard shortcuts. No -10s/+10s buttons.
+// #4 learning controls: Loop Line repeat, keyboard shortcuts. No -10s/+10s buttons.
 let abLoop = false;
 let abSrc = null;
 function skipSeconds(d) {
@@ -1204,7 +1205,7 @@ function syncABBtn() {
   const b = document.getElementById('ab-btn');
   if (!b) return;
   b.classList.toggle('on', abLoop);
-  b.textContent = abLoop ? 'A-B On' : 'A-B Off';
+  b.textContent = abLoop ? 'Loop Line On' : 'Loop Line';
 }
 document.addEventListener('keydown', ev => {
   try {
@@ -1496,9 +1497,9 @@ try {
 
 function render() {
   const app = document.getElementById('app');
-  let html = '<div class="nav-wrapper"><nav class="lesson-nav">';
+  let html = '<div class="nav-wrapper"><span class="lesson-prefix">Lesson</span><nav class="lesson-nav">';
   LESSONS.forEach((l, i) => {
-    html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">Lesson ${i+1}</button>`;
+    html += `<button class="lesson-btn${i===activeLesson?' active':''}" onclick="setLesson(${i})">${i+1}</button>`;
   });
   html += `</nav><div class="nav-controls"><button type="button" class="search-btn" onclick="toggleSearch()" title="Search" aria-label="Search">⌕</button>
   <details class="font-dropdown" id="font-dropdown">
@@ -1538,7 +1539,7 @@ function render() {
   html += `<details class="speed-dropdown" id="speed-dropdown"><summary>Speed <span class="speed-dropdown-arrow">▾</span></summary><div class="speed-dropdown-panel" id="speed-dropdown-panel"><button type="button" data-rate="0.75">0.75×</button><button type="button" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div></details>`;
   html += `<button class="bar-btn" id="play-all-btn" onclick="togglePlayAll()">▶ Play All</button>`;
   html += `<button class="bar-btn" id="loop-all-btn" onclick="toggleLoop('a_${activeLesson}_${activeSection}')">↻ Loop All</button>`;
-  html += `<button class="bar-btn" id="ab-btn" onclick="toggleAB()">A-B Off</button>`;
+  html += `<button class="bar-btn" id="ab-btn" onclick="toggleAB()">Loop Line</button>`;
   html += '</div></div>';
   const sec = lesson.sections[activeSection];
   html += '<div class="section-content">';
