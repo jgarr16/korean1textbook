@@ -10,7 +10,7 @@
   <a href="https://jgarr16.github.io/korean1textbook/">✨ Try it live ✨</a>
 </p>
 
-Forget hunting for CD tracks. This is *Integrated Korean: Beginning 1 (3rd edition)* turned into a lightning-fast, tap-to-hear study playground for Lessons 1–7.
+Forget hunting for CD tracks. This is *Integrated Korean: Beginning 1 (3rd edition)* turned into a lightning-fast, tap-to-hear study playground for Lessons 1–7 (additional lessons coming semester-by-semester).
 
 Every conversation and narration is split line-by-line, color-coded by speaker, and ready to play instantly — on your phone, between classes, on the bus, in line for coffee.
 
