@@ -7,7 +7,7 @@ textbook audio into an interactive study tool. Each lesson section displays the 
 text line-by-line with per-line play buttons, per-speaker-turn play buttons, and a
 play-all button. Designed for mobile use while studying.
 
-**Live URL:** `https://jgarr16.github.io/korean1textbook/`  
+**Live URL:** `https://korean.garrigai.com/`  
 **Repo:** `https://github.com/jgarr16/korean1textbook`  
 **Local repo:** `/Users/jrgarrigues/repo/korean1/`
 
